@@ -30,6 +30,7 @@
 #include <math.h>           // round
 /** Custom Libs **/
 #include "./inc/simple_uart/simple_uart.h"	// cross platform UART driver
+#include "usbiss.h"			// USBISS driver
 /** self **/
 #include "usbiss_main.h"	// some defs
 
@@ -46,9 +47,9 @@ int main (int argc, char *argv[])
 {
 	/** Variables **/
 	uint8_t					uint8MsgLevel = MSG_LEVEL_NORM;		// message level
-	uint32_t				uint32BaudRate = 9600;				// default baudrate
-	char					charPort[128];						// default port
-	struct simple_uart 		*uart;								// uart handle
+	uint32_t				uint32BaudRate;						// CLI: baud rate
+	char					charPort[128];						// CLI: port
+	t_usbiss				usbiss;								// usbiss handle
 
     /* command line parser */
     int opt;                            // switch for parameter
@@ -72,7 +73,7 @@ int main (int argc, char *argv[])
 
     /* Entry Message */
     if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
-        printf("[ INFO ]   usbiss started\n");
+        printf("[ INFO ]   USBISS started\n");
         printf("             %s\n", VERSION);
     }
 
@@ -85,12 +86,11 @@ int main (int argc, char *argv[])
         goto ERO_END_L0;
     }
 
-	/* init default path to UART based on platform */
-    #if defined(__linux__) || defined(__APPLE__)
-		strncpy(charPort, "/dev/ttyACM0", sizeof(charPort));
-	#else
-		strncpy(charPort, "COM1", sizeof(charPort));
-	#endif
+
+	/* flag defaults */
+	uint32BaudRate = 0;	// use usbiss defaults
+	charPort[0] = '\0';	// use defaults
+
 
 	/* Parse CLI */
 	while (-1 != (opt = getopt_long(argc, argv, shortopt, longopt, &arg_index))) {
@@ -117,19 +117,6 @@ int main (int argc, char *argv[])
             /* process '--baud<baud>' argument */
             case 'b':
 				uint32BaudRate = (uint32_t) atoi(optarg);	// convert to integer
-				switch (uint32BaudRate) {
-					case 9600: break;
-					case 14400: break;
-					case 19200: break;
-					case 38400: break;
-					case 57600: break;
-					case 115200: break;
-					default:
-						if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
-							printf("[ FAIL ]   Unsupported USBISS baudrate of %i\n", uint32BaudRate);
-						}
-						goto ERO_END_L0;
-				}
 				break;
 			
             /* Print command line options */
@@ -145,18 +132,35 @@ int main (int argc, char *argv[])
         }
     }
 
+	/* init uart handle */
+	if ( 0 != usbiss_init(&usbiss) ) {
+		printf("[ FAIL ]   USBISS handle\n");
+		goto ERO_END_L0;
+	}
+	
+	// TODO
+	usbiss.uint8MsgLevel = 1;
+	
 	/* open UART Port */
-	uart = simple_uart_open(charPort, uint32BaudRate, "8N1");	// usbiss is fixed to 8bit and 1 stopbit
-	if (!uart) {
+	if ( 0 != usbiss_open(&usbiss, charPort, uint32BaudRate) ) {
 		if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
-			printf("[ FAIL ]   unable to open UART\n");
-			printf("             Port: %s\n", charPort);
-			printf("             Baud: %i\n", uint32BaudRate);
-			printf("             Mode: 8N1\n", opt);
+			printf("[ FAIL ]   unable to open USBISS\n");
+			printf("             Port: %s\n", usbiss.charPort);
+			printf("             Baud: %i\n", usbiss.uint32BaudRate);
 		}
 		goto ERO_END_L0;
 	}
-	printf("[ OKAY ]   UART %s open\n", charPort);
+	if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+		printf("[ OKAY ]   USBISS connected\n");
+		printf("             Port     : %s\n", usbiss.charPort);
+		printf("             Baud     : %i\n", usbiss.uint32BaudRate);
+		printf("             Firmware : 0x%02x\n", usbiss.uint8Fw);
+		printf("             Serial   : %s\n", usbiss.charSerial);
+	}
+	
+	
+	
+
 
 
 
