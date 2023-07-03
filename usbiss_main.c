@@ -49,7 +49,7 @@ int main (int argc, char *argv[])
 	uint8_t					uint8MsgLevel = MSG_LEVEL_NORM;		// message level
 	uint32_t				uint32BaudRate;						// CLI: baud rate
 	char					charPort[128];						// CLI: port
-	uint8_t					uint8Mode;							// CLI: change mode
+	char					charMode[128];						// CLI: change mode
 	t_usbiss				usbiss;								// usbiss handle
 
     /* command line parser */
@@ -72,13 +72,6 @@ int main (int argc, char *argv[])
 
 
 
-    /* Entry Message */
-    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
-        printf("[ INFO ]   USBISS started\n");
-        printf("             %s\n", VERSION);
-    }
-
-
     /* check for root rights */
     #if defined(__linux__) || defined(__APPLE__)
 		if (getuid()) {
@@ -99,9 +92,9 @@ int main (int argc, char *argv[])
 
 
 	/* flag defaults */
-	uint32BaudRate = 0;			// use usbiss defaults
-	charPort[0] = '\0';			// use defaults
-	uint8Mode = __UINT8_MAX__;	// use defaults
+	uint32BaudRate = 0;		// use usbiss defaults
+	charPort[0] = '\0';		// use defaults
+	charMode[0] = '\0';		// no change
 
 
 	/* Parse CLI */
@@ -133,14 +126,16 @@ int main (int argc, char *argv[])
 			
 			/* process '--mode<mode>' argument */
 			case 'm':
-				uint8Mode = usbiss_human_to_mode(optarg);
-				if ( __UINT8_MAX__ == uint8Mode ) {
+                /* check for enough memory */
+				if ( (strlen(optarg) + 1) > sizeof(charMode) ) {
 					if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
-						printf("[ FAIL ]   --mode=%s unsupported\n", optarg);
+						printf("[ FAIL ]   not enough static memory\n");
 					}
 					goto ERO_END_L0;
 				}
-				break;
+				/* copy user path */
+				strncpy(charMode, optarg, sizeof(charMode));
+                break;
 			
             /* Print command line options */
             case 'h':
@@ -158,6 +153,13 @@ int main (int argc, char *argv[])
     }
 
 
+    /* Entry Message */
+    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+        printf("[ INFO ]   USBISS started\n");
+        printf("             %s\n", VERSION);
+    }
+
+
 	/* init USBISS handle */
 	if ( 0 != usbiss_init(&usbiss) ) {
 		printf("[ FAIL ]   USBISS handle\n");
@@ -172,7 +174,7 @@ int main (int argc, char *argv[])
 	
 	
 	/* open UART Port */
-	if ( 0 != usbiss_open(&usbiss, charPort, uint32BaudRate, uint8Mode) ) {
+	if ( 0 != usbiss_open(&usbiss, charPort, uint32BaudRate) ) {
 		if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
 			printf("[ FAIL ]   unable to open USBISS\n");
 			printf("             Port: %s\n", usbiss.charPort);
@@ -182,14 +184,22 @@ int main (int argc, char *argv[])
 	}
 	if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
 		printf("[ OKAY ]   USBISS connected\n");
-		printf("             Mode     : %s\n", usbiss_mode_to_human(usbiss.uint8Mode));
+		printf("             Baudrate : %i\n", usbiss.uint32BaudRate);
 		printf("             Firmware : 0x%02x\n", usbiss.uint8Fw);
 		printf("             Serial   : %s\n", usbiss.charSerial);
 	}
 	
 	
-	
-
+	/* set mode */
+	if ( 0 < strlen(charMode) ) {
+		if ( 0 != usbiss_set_mode(&usbiss, charMode) ) {
+			printf("[ FAIL ]   USBISS mode setup\n");
+			goto ERO_END_L1;
+		}
+	}
+	if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+		printf("             Mode     : %s\n", usbiss_mode_to_human(usbiss.uint8Mode));
+	}
 
 
 
@@ -206,7 +216,11 @@ int main (int argc, char *argv[])
 		}
 		exit(EXIT_SUCCESS);
 
-    /* Error L0 End */
+    /* Error L1 End */
+	goto ERO_END_L1;
+	ERO_END_L1:
+		while (0) {};	// todo, close UART connection
+	/* Error L0 End */
     goto ERO_END_L0;
 	ERO_END_L0:
         if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
