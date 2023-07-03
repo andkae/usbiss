@@ -49,6 +49,8 @@
 #define USBISS_ISS_VERSION	0x01	/**< Returns 3 bytes, the module ID (7), firmware version (currently 2), and the current operating mode. */
 #define USBISS_SET_ISS_MODE	0x02	/**< Sets operating mode, I2C/SPI/Serial etc. */
 #define USBISS_GET_SER_NUM	0x03	/**< Returns the modules unique 8 byte USB serial number. */
+#define USBISS_CMD_ACK		0xFF	/**< mode setting frames accepted */
+#define USBISS_CMD_NCK		0x00	/**< mode setting frame not accepted */
 /** @} */   // USBISS_CMD
 
 
@@ -92,6 +94,7 @@ typedef struct t_usbiss {
 	uint8_t				uint8Fw;			/**<  firmware version */
 	uint8_t				uint8Mode;			/**<  current mode */
 	char				charSerial[10];		/**<  serial number */
+	uint8_t				uint8IsOpen;		/**<  connection to usbiss is open */
 
 } t_usbiss;
 
@@ -105,7 +108,8 @@ extern "C"
 
 
 
-/** @brief mode-to-human
+/** 
+ *  @brief mode-to-human
  *
  *  converts USBISS mode to human readable string
  *
@@ -118,7 +122,8 @@ char *usbiss_mode_to_human(uint8_t mode);
 
 
 
-/** @brief init
+/** 
+ *  @brief init
  *
  *  initializes common data structure
  *
@@ -132,7 +137,8 @@ int usbiss_init( t_usbiss *self );
 
 
 
-/** @brief verbose
+/** 
+ *  @brief verbose
  *
  *  set verbose level
  *
@@ -142,6 +148,41 @@ int usbiss_init( t_usbiss *self );
  *  @author         Andreas Kaeberlein
  */
 void usbiss_set_verbose( t_usbiss *self, uint8_t verbose );
+
+
+
+/** 
+ *  @brief open
+ *
+ *  open connection to USBISS
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @param[in]      port                System Path to UART terminal of USBISS
+ *  @param[in]      baud              	desired UART transfer rate
+ *  @return         int                 state
+ *  @retval         0                   OK
+ *  @retval         -1                  FAIL
+ *  @since          June 30, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
+
+
+
+/** 
+ *  @brief open
+ *
+ *  open connection to USBISS
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @param[in]      mode                USBISS transfer mode
+ *  @return         int                 state
+ *  @retval         0                   OK
+ *  @retval         -1                  FAIL
+ *  @since          July 3, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_set_mode( t_usbiss *self, const char* mode );
 
 
 

@@ -37,6 +37,26 @@
 
 
 /**
+ *  @defgroup FALL_THROUGH
+ *
+ *  @brief Fallthrough
+ *
+ *  Defines fallthrough only for newer compiler 
+ *  avoids warning 'error: empty declaration __attribute__((fallthrough))'
+ *
+ *  @since  2023-01-07
+ *  @see https://stackoverflow.com/questions/45349079/how-to-use-attribute-fallthrough-correctly-in-gcc
+ */
+#if defined(__GNUC__) && __GNUC__ >= 7
+	#define FALL_THROUGH __attribute__ ((fallthrough))
+#else
+	#define FALL_THROUGH ((void)0)
+#endif /* __GNUC__ >= 7 */
+/** @} */   // FALL_THROUGH
+
+
+
+/**
  *  usbiss_uint8_to_str
  *    convert to ascii hex
  */
@@ -58,6 +78,75 @@ static void usbiss_uint8_to_asciihex( char *buf, uint32_t buflen, uint8_t *dat, 
 	}
 	buf[strlen(buf)-1] = '\0';	// delete last ' '
 }
+
+
+/**
+ *  mode-to-str
+ *    converts USBISS mode to human readable string
+ */
+static int usbiss_human_to_mode(const char *str, uint8_t *val)
+{
+	if ( 0 == strcasecmp(str, "IO_MODE") ) {
+		*val = (uint8_t) USBISS_IO_MODE;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "IO_CHANGE") ) {
+		*val = (uint8_t) USBISS_IO_CHANGE;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_S_20KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_S_20KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_S_50KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_S_50KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_S_100KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_S_100KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_S_400KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_S_400KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_H_100KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_H_100KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_H_400KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_H_400KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "I2C_H_1000KHZ") ) {
+		*val = (uint8_t) USBISS_I2C_H_1000KHZ;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "SPI_MODE") ) {
+		*val = (uint8_t) USBISS_SPI_MODE;
+		return 0;
+	} else if ( 0 == strcasecmp(str, "SERIAL") ) {
+		*val = (uint8_t) USBISS_SERIAL;
+		return 0;
+	}
+	/* unsupported input */
+	*val = (uint8_t) __UINT8_MAX__;
+	return -1;
+}
+
+
+
+/**
+ *  usbiss_is_i2c_mode
+ *    check if i2c mode is selected
+ */
+static int usbiss_is_i2c_mode ( uint8_t mode ) 
+{
+	/* build mode set frame */
+	switch ( mode ) {
+		/* I2C Modes */
+		case USBISS_I2C_S_20KHZ:	FALL_THROUGH;
+		case USBISS_I2C_S_50KHZ:	FALL_THROUGH;
+		case USBISS_I2C_S_100KHZ:	FALL_THROUGH;
+		case USBISS_I2C_S_400KHZ:	FALL_THROUGH;
+		case USBISS_I2C_H_100KHZ:	FALL_THROUGH;
+		case USBISS_I2C_H_400KHZ:	FALL_THROUGH;
+		case USBISS_I2C_H_1000KHZ:	return 0;
+	}	
+	return -1;
+}
+
 
 
 /**
@@ -86,38 +175,6 @@ char *usbiss_mode_to_human(uint8_t mode)
 }
 
 
-/**
- *  mode-to-str
- *    converts USBISS mode to human readable string
- */
-uint8_t usbiss_human_to_mode(const char *str)
-{
-	if ( 0 == strcasecmp(str, "IO_MODE") ) {
-		return (uint8_t) USBISS_IO_MODE;
-	} else if ( 0 == strcasecmp(str, "IO_CHANGE") ) {
-		return (uint8_t) USBISS_IO_CHANGE;
-	} else if ( 0 == strcasecmp(str, "I2C_S_20KHZ") ) {
-		return (uint8_t) USBISS_I2C_S_20KHZ;
-	} else if ( 0 == strcasecmp(str, "I2C_S_50KHZ") ) {
-		return (uint8_t) USBISS_I2C_S_50KHZ;
-	} else if ( 0 == strcasecmp(str, "I2C_S_100KHZ") ) {
-		return (uint8_t) USBISS_I2C_S_100KHZ;
-	} else if ( 0 == strcasecmp(str, "I2C_S_400KHZ") ) {
-		return (uint8_t) USBISS_I2C_S_400KHZ;
-	} else if ( 0 == strcasecmp(str, "I2C_H_100KHZ") ) {
-		return (uint8_t) USBISS_I2C_H_100KHZ;
-	} else if ( 0 == strcasecmp(str, "I2C_H_400KHZ") ) {
-		return (uint8_t) USBISS_I2C_H_400KHZ;
-	} else if ( 0 == strcasecmp(str, "I2C_H_1000KHZ") ) {
-		return (uint8_t) USBISS_I2C_H_1000KHZ;
-	} else if ( 0 == strcasecmp(str, "SPI_MODE") ) {
-		return (uint8_t) USBISS_SPI_MODE;
-	} else if ( 0 == strcasecmp(str, "SERIAL") ) {
-		return (uint8_t) USBISS_SERIAL;
-	} else {
-		return (uint8_t) __UINT8_MAX__;
-	}
-}
 
 
 /**
@@ -131,6 +188,7 @@ int usbiss_init( t_usbiss *self )
 	self->uint32BaudRate = USBISS_UART_BAUD_RATE;	// default baudrate
 	self->uint8Fw = 0;		// firmware version
 	self->uint8Mode = 0;	// transfer mode
+	self->uint8IsOpen = 0;	// not open
 	/* init default path to UART based on platform */
     #if defined(__linux__) || defined(__APPLE__)
 		strncpy(self->charPort, USBISS_UART_PATH_LINUX, sizeof(self->charPort));
@@ -156,7 +214,7 @@ void usbiss_set_verbose( t_usbiss *self, uint8_t verbose )
  *  usbiss_open
  *    open handle to USBISS and checks ID + serial read
  */
-int usbiss_open( t_usbiss *self, char *port, uint32_t baud, uint8_t mode )
+int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
 {	
 	/** variable **/
 	uint8_t		uint8Wr[16];	// write buffer
@@ -251,24 +309,92 @@ int usbiss_open( t_usbiss *self, char *port, uint32_t baud, uint8_t mode )
 	if ( 0 != self->uint8MsgLevel ) {
 		printf("  INFO:%s: Serial=%s\n", __FUNCTION__, self->charSerial);
 	}
-    /* set mode */
-	if ( __UINT8_MAX__ != mode ) {
-		uint8Wr[0] = USBISS_CMD;
-		uint8Wr[1] = USBISS_SET_ISS_MODE;
-		
-	}
-	
-	
-	
-	
+	/* mark as open */
+	self->uint8IsOpen = 1;
 	/* graceful end */
     return 0;
 }
 
 
 
-
-
+/**
+ *  usbiss_set_mode
+ *    set USBISS transfer mode
+ */
+int usbiss_set_mode( t_usbiss *self, const char* mode )
+{
+	/** Variables **/
+	char		charBuf[512];	// help buffer for string conversion
+	uint8_t		uint8Mode;		// new USBISS mode as opcode
+	uint8_t		uint8Wr[16];	// write buffer
+	uint8_t		uint8Rd[16];	// read buffer
+	int			intWrLen;		// write packet length
+	int			intRdLen;
+	
+	
+	/* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+	/* USBISS open? */
+	if ( !self->uint8IsOpen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS connection not open\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* convert to int mode */
+	if ( 0 != usbiss_human_to_mode(mode, &uint8Mode) ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS mode '%s' unsupported\n", __FUNCTION__, mode);	
+		}
+		return -1;
+	}
+	/* mode change required? */
+	if ( self->uint8Mode == uint8Mode ) {
+		return 0;	// desired mode selected
+	}	
+	/* Build I2C mode set frame */
+	if ( 0 == usbiss_is_i2c_mode(uint8Mode) ) {
+		uint8Wr[0] = USBISS_CMD;
+		uint8Wr[1] = USBISS_SET_ISS_MODE;
+		uint8Wr[2] = uint8Mode;
+		uint8Wr[3] = 0x04;	// IO_TYPE (see I/O mode above)
+		intWrLen = 4;
+	/* unsupported Format */
+	} else {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Methode to change mode not implemented\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	if ( 0 != self->uint8MsgLevel ) {
+		usbiss_uint8_to_asciihex( charBuf, sizeof(charBuf), uint8Wr, (uint32_t) intWrLen );	// convert to ascii hex
+		printf("  INFO:%s:REQ: %s\n", __FUNCTION__, charBuf);
+	}
+	/* set USBISS */
+	if ( intWrLen != simple_uart_write(self->uart, uint8Wr, intWrLen) ) {	// request
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: unexpected number of byte written\n", __FUNCTION__);
+		}
+		return -1;
+	}
+	intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
+	if ( 2 != intRdLen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, intRdLen);	
+		}
+		return -1;
+	}
+	if ( USBISS_CMD_ACK != uint8Rd[0] ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Mode change rejected, reason 0x%02x\n", __FUNCTION__, uint8Rd[1]);	
+		}
+		return -1;
+	}
+	/* propagate mode change */
+	self->uint8Mode = uint8Mode;
+	/* graceful end */
+    return 0;
+}
 
 
 
