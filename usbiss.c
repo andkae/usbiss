@@ -443,7 +443,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
 
 
 /**
- *  usbiss_set_mode
+ *  usbiss_i2c_wr
  *    set USBISS transfer mode
  */
 int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, uint16_t len )

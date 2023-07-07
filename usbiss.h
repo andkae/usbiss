@@ -92,7 +92,7 @@
 #define USBISS_I2C_RESTART	(0x02)	/**< send restart sequence */
 #define USBISS_I2C_STOP		(0x03)	/**< send stop sequence */
 #define USBISS_I2C_NCK		(0x04)	/**< send NACK after next read */
-#define USBISS_I2C_READ		(0x20)  /**< 0x2n reads n+1 bytes */
+#define USBISS_I2C_READ		(0x20)  /**< 0x2n reads n+1 bytes, f.e 0x20 reads one byte */
 #define USBISS_I2C_WRITE	(0x30) 	/**< 0x3n writes n+1 bytes */
 /** @} */   // USBISS_I2C_DIRECT
 
@@ -260,6 +260,23 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
 int usbiss_set_mode( t_usbiss *self, const char* mode );
 
 
+
+/** 
+ *  @brief i2c-write
+ *
+ *  write arbietrary sized data packet to i2c device
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @param[in]      adr7                Seven Bit I2C address
+ *  @param[in,out]  data                write data
+ *  @param[in]      len                 number of bytes in data
+ *  @return         int                 state
+ *  @retval         0                   OK
+ *  @retval         -1                  FAIL
+ *  @since          July 7, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, uint16_t len );
 
 
 
