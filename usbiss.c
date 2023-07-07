@@ -55,6 +55,29 @@
 /** @} */   // FALL_THROUGH
 
 
+/**
+ *  @defgroup MIN_MAX
+ *
+ *  @brief MIN/MAX
+ *
+ *  Calculates MIN/MAX of two numbers
+ *
+ *  @since  2023-07-07
+ *  @see https://stackoverflow.com/questions/3437404/min-and-max-in-c
+ */
+ #define usbiss_max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+
+ #define usbiss_min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+
+/** @} */   // MIN_MAX
+
+
 
 /**
  *  usbiss_uint8_to_str
@@ -174,6 +197,28 @@ char *usbiss_mode_to_human(uint8_t mode)
 	return str;
 }
 
+
+
+/**
+ *  mode-to-human
+ *    converts USBISS mode to human readable string
+ */
+char *usbiss_ero_str(uint8_t error)
+{
+	static char str[64];
+  
+	switch(error) {
+		case USBISS_ERO_ID1:	strncpy(str, USBISS_ERO_ID1_STR, sizeof(str)); break;
+		case USBISS_ERO_ID2:	strncpy(str, USBISS_ERO_ID2_STR, sizeof(str)); break;
+		case USBISS_ERO_ID3:	strncpy(str, USBISS_ERO_ID3_STR, sizeof(str)); break;
+		case USBISS_ERO_ID4:	strncpy(str, USBISS_ERO_ID4_STR, sizeof(str)); break;
+		case USBISS_ERO_ID5:	strncpy(str, USBISS_ERO_ID5_STR, sizeof(str)); break;
+		case USBISS_ERO_ID6:	strncpy(str, USBISS_ERO_ID6_STR, sizeof(str)); break;
+		case USBISS_ERO_ID7:	strncpy(str, USBISS_ERO_ID7_STR, sizeof(str)); break;
+		default:				strncpy(str, "UNKNOWN",       	 sizeof(str)); break;
+	}
+	return str;
+}
 
 
 
@@ -397,7 +442,146 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
 }
 
 
-
+/**
+ *  usbiss_set_mode
+ *    set USBISS transfer mode
+ */
+int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, uint16_t len )
+{
+	/** Variables **/
+	uint8_t			uint8Wr[32];		// write buffer: DIRECT + START + WRITE + 16Bytes + STOP
+	uint8_t			uint8Rd[4];			// read buffer
+	uint16_t		uint16DataIdx;		// data index of write data
+	uint8_t			uint8NumPlByte;		// number of payload bytes
+	int				intRdLen;			// number of read bytes from terminal
+	char			charBuf[256];		// help buffer for debug outputs
+	int				intRet;				// internal return code, allows to send stop bit in case of crash
+	uint32_t		uint32Cnt;			// loop count
+	
+	/* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+	/* empty frame provided */
+	if ( 0 == len ) {
+		return 0;
+	}
+	/* USBISS open? */
+	if ( !self->uint8IsOpen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS connection not open\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* I2C mode setted? */
+	if ( 0 != usbiss_is_i2c_mode(self->uint8Mode) ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS is configured for non I2C mode\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* First packet START + ADR */
+	uint8Wr[0] = USBISS_I2C_DIRECT;	// USBISS direct mode
+	uint8Wr[1] = USBISS_I2C_START;	// START-Bit
+	uint8Wr[2] = (uint8_t) (USBISS_I2C_WRITE);	// only one address byte written
+	uint8Wr[3] = (uint8_t) ((adr7 << 1) | USBISS_I2C_WR);	// i2c address
+	if ( 4 != simple_uart_write(self->uart, uint8Wr, 4) ) {	// request
+		if ( 0 != self->uint8MsgLevel ) {
+			usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 4);	// convert to ascii
+			printf("  ERROR:%s: REQ: %s\n", __FUNCTION__, charBuf);
+		}
+		return -1;
+	}
+	if ( 0 != self->uint8MsgLevel ) {
+		usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 4);	// convert to ascii
+		printf("  INFO:%s:START: REQ=%s\n", __FUNCTION__, charBuf);
+	}
+	intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
+	if ( 2 != intRdLen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, intRdLen);	
+		}
+		return -1;
+	}
+	if ( USBISS_CMD_ACK != uint8Rd[0] ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Start bit rejected, %s, ero=0x%02x\n", __FUNCTION__, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+		}
+		return (int) (uint8Rd[1]);	// USBISS error code
+	}
+	/* Intermideate Packets, DATA */
+	intRet = 0;
+	uint32Cnt = 0;
+	uint16DataIdx = 0;	// next data packet start field
+	uint8NumPlByte = (uint8_t) usbiss_min(USBISS_I2C_CHUNK, len);	// calculate max number of bytes to send, -1 through i2c adr
+	while ( uint16DataIdx < len ) {
+		/* calc payload size */
+		uint8NumPlByte = (uint8_t) usbiss_min(USBISS_I2C_CHUNK, len-uint16DataIdx);
+		/* assemble packet */
+		uint8Wr[0] = USBISS_I2C_DIRECT;	// USBISS direct mode
+		uint8Wr[1] = (uint8_t) (USBISS_I2C_WRITE + uint8NumPlByte - 1);
+		memcpy(uint8Wr+2, data+uint16DataIdx, uint8NumPlByte);
+		/* request i2c packet transfer */
+		if ( (uint8NumPlByte + 2) != simple_uart_write(self->uart, uint8Wr, uint8NumPlByte + 2) ) {	// request
+			if ( 0 != self->uint8MsgLevel ) {
+				usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8NumPlByte + 2));	// convert to ascii
+				printf("  ERROR:%s:Packet=%i:OFS=0x%x:REQ: %s\n", __FUNCTION__, uint32Cnt, uint16DataIdx, charBuf);
+			}
+			intRet = -1;
+			break;
+		}
+		if ( 0 != self->uint8MsgLevel ) {
+			usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8NumPlByte + 2));	// convert to ascii
+			printf("  INFO:%s:PKT%i: REQ=%s\n", __FUNCTION__, uint32Cnt, charBuf);
+		}
+		/* check response */
+		intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
+		if ( 2 != intRdLen ) {
+			if ( 0 != self->uint8MsgLevel ) {
+				printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, intRdLen);	
+			}
+			intRet = -1;
+			break;
+		}
+		if ( USBISS_CMD_ACK != uint8Rd[0] ) {
+			if ( 0 != self->uint8MsgLevel ) {
+				printf("  ERROR:%s: Stop bit rejected, %s, ero=0x%02x\n", __FUNCTION__, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+			}
+			intRet = (int) (uint8Rd[1]);	// USBISS error code
+			break;
+		}
+		/* prepare next cycle */
+		uint16DataIdx = (uint16_t) (uint16DataIdx + uint8NumPlByte);	// update data pointer
+		uint32Cnt++;
+	}
+	/* Last Packet Stop Bit */
+	uint8Wr[0] = USBISS_I2C_DIRECT;	// USBISS direct mode
+	uint8Wr[1] = USBISS_I2C_STOP;	// STOP-Bit
+	if ( 2 != simple_uart_write(self->uart, uint8Wr, 2) ) {	// request
+		if ( 0 != self->uint8MsgLevel ) {
+			usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 2);	// convert to ascii
+			printf("  ERROR:%s: REQ: %s\n", __FUNCTION__, charBuf);
+		}
+		return -1;
+	}
+	if ( 0 != self->uint8MsgLevel ) {
+		usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 4);	// convert to ascii
+		printf("  INFO:%s:STOP: REQ=%s\n", __FUNCTION__, charBuf);
+	}
+	intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
+	if ( 2 != intRdLen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, intRdLen);	
+		}
+		return -1;
+	}
+	if ( USBISS_CMD_ACK != uint8Rd[0] ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Stop bit rejected, %s, ero=0x%02x\n", __FUNCTION__, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+		}
+		return (int) (uint8Rd[1]);	// USBISS error code
+	}
+	/* graceful end */
+    return intRet;
+}
 
 
 

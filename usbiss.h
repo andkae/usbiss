@@ -36,6 +36,7 @@
 /** @} */   // USBISS_MISC
 
 
+
 /**
  *  @defgroup USBISS_CMD
  *  USBISS setup commands
@@ -52,6 +53,7 @@
 #define USBISS_CMD_ACK		0xFF	/**< mode setting frames accepted */
 #define USBISS_CMD_NCK		0x00	/**< mode setting frame not accepted */
 /** @} */   // USBISS_CMD
+
 
 
 /**
@@ -74,6 +76,65 @@
 #define USBISS_SPI_MODE 		0x90
 #define USBISS_SERIAL 			0x01
 /** @} */   // USBISS_MODE
+
+
+
+/**
+ *  @defgroup USBISS_I2C_DIRECT
+ *  USBISS setup commands
+ *
+ *  @see http://www.robot-electronics.co.uk/htm/usb_iss_i2c_tech.htm
+ *
+ *  @{
+ */
+#define USBISS_I2C_CHUNK	(16)	/**< Maximum chunk size for on packet */
+#define USBISS_I2C_START	(0x01)	/**< send start sequence */
+#define USBISS_I2C_RESTART	(0x02)	/**< send restart sequence */
+#define USBISS_I2C_STOP		(0x03)	/**< send stop sequence */
+#define USBISS_I2C_NCK		(0x04)	/**< send NACK after next read */
+#define USBISS_I2C_READ		(0x20)  /**< 0x2n reads n+1 bytes */
+#define USBISS_I2C_WRITE	(0x30) 	/**< 0x3n writes n+1 bytes */
+/** @} */   // USBISS_I2C_DIRECT
+
+
+
+/**
+ * @defgroup USBISS_I2C
+ *
+ * Direction (Read or Write) of I2C communication
+ *
+ * @{
+ */
+#define USBISS_I2C_WR	(0x00)		/**<  I2C Write Bit */
+#define USBISS_I2C_RD	(0x01)		/**<  I2C Read Bit */
+/** @} */
+
+
+
+/**
+ *  @defgroup USBISS_ERROR
+ *  USBISS Error Codes
+ *
+ *  @see http://www.robot-electronics.co.uk/htm/usb_iss_i2c_tech.htm
+ *
+ *  @{
+ */
+#define USBISS_ERO_ID1		(0x01)														/**< Ero 1 */
+#define USBISS_ERO_ID1_STR	"No ACK from device"										/**< Ero 1 String */
+#define USBISS_ERO_ID2		(0x02)														/**< Ero 2 */
+#define USBISS_ERO_ID2_STR	"Buffer Overflow, You must limit the frame to < 60 bytes"	/**< Ero 2 String */
+#define USBISS_ERO_ID3		(0x03)														/**< Ero 3 */
+#define USBISS_ERO_ID3_STR	"Buffer Underflow, More write data was expected than sent"	/**< Ero 3 String */
+#define USBISS_ERO_ID4		(0x04)														/**< Ero 4 */
+#define USBISS_ERO_ID4_STR	"Unknown command"											/**< Ero 4 String */
+#define USBISS_ERO_ID5		(0x05)														/**< Ero 5 */
+#define USBISS_ERO_ID5_STR	"Unknown command"											/**< Ero 5 String */
+#define USBISS_ERO_ID6		(0x06)														/**< Ero 6 */
+#define USBISS_ERO_ID6_STR	"Internal Error 1"											/**< Ero 6 String */
+#define USBISS_ERO_ID7		(0x07)														/**< Ero 7 */
+#define USBISS_ERO_ID7_STR	"Internal Error 2"											/**< Ero 7 String */
+/** @} */   // USBISS_ERROR
+
 
 
 /**
@@ -119,6 +180,20 @@ extern "C"
  *  @author         Andreas Kaeberlein
  */
 char *usbiss_mode_to_human(uint8_t mode);
+
+
+
+/** 
+ *  @brief ero-to-str
+ *
+ *  converts USBISS error code into human readable string
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @return         string              sstring with human readable error string
+ *  @since          July 7, 2023
+ *  @author         Andreas Kaeberlein
+ */
+char *usbiss_ero_str(uint8_t error);
 
 
 
