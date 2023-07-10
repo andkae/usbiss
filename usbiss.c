@@ -285,8 +285,18 @@ static int usbiss_i2c_stopbit( t_usbiss *self )
 
 
 /**
- *  usbiss_i2c_data_wr
- *    brings only data bytes to I2C lines, Start/Stop bit needs to asserted by write/write-read function
+ *  @brief I2C Write
+ *
+ *  brings only data bytes to I2C lines, Start/Stop bit needs to asserted by dedicated function
+ *
+ *  @param[in,out]  *self           	common handle #t_usbiss
+ *  @param[in]      data            	data array
+ *  @param[in]      len           		number of bytes in data
+ *  @return         int
+ *  @retval         0             		OK
+ *  @retval         -1                  FAIL
+ *  @since          July 10, 2023
+ *  @author         Andreas Kaeberlein
  */
 static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len ) 
 {
@@ -299,7 +309,6 @@ static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len )
 	char		charBuf[256];		// help buffer for debug outputs
 	int			intRet;				// internal return code, allows to send stop bit in case of crash
 	size_t		iter;				// loop count
-	
 	
 	/* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
