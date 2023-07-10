@@ -276,7 +276,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode );
  *  @since          July 7, 2023
  *  @author         Andreas Kaeberlein
  */
-int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, uint16_t len );
+int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, size_t len );
 
 
 
