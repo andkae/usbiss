@@ -299,6 +299,25 @@ int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t len );
 
 
 
+/** 
+ *  @brief i2c-write-read
+ *
+ *  writes to i2c devices, sents repeated start for direction change and reads from i2c device
+ *  write and read data takes places in the same buffer, that meamns the write buffer
+ *  will be overwritten by read data.
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @param[in]      adr7                Seven Bit I2C address
+ *  @param[in,out]  data                read data
+ *  @param[in]      wrLen               number of bytes to write to slave
+ *  @param[in]      len                 number of requested bytes from slave
+ *  @return         int                 state
+ *  @retval         0                   OK
+ *  @retval         -1                  FAIL
+ *  @since          July 11, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_i2c_wr_rd( t_usbiss *self, uint8_t adr7, void* data, size_t wrLen, size_t rdLen );
 
 
 #ifdef __cplusplus

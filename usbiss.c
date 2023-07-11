@@ -939,3 +939,73 @@ int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t len )
     return intRet;
 }
 
+
+
+/**
+ *  usbiss_i2c_wr_rd
+ *    writes to i2c devices, sents repeated start for direction change and reads from i2c device
+ */
+int usbiss_i2c_wr_rd( t_usbiss *self, uint8_t adr7, void* data, size_t wrLen, size_t rdLen )
+{
+	/** Variables **/
+	int		intRet = 0;		// internal return code, allows to send stop bit in case of crash
+	
+	/* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+	/* empty frame provided */
+	if ( (0 == wrLen) || (0 == rdLen) ) {
+		return 0;
+	}
+	/* USBISS open? */
+	if ( !self->uint8IsOpen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS connection not open\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* I2C mode setted? */
+	if ( 0 != usbiss_is_i2c_mode(self->uint8Mode) ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS is configured for non I2C mode\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* Startbit + ADR */
+	intRet |= usbiss_i2c_startbit(self, (uint8_t) ((adr7 << 1) | USBISS_I2C_WR));
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Startbit failed\n", __FUNCTION__);
+		}
+		return intRet;
+	}
+	/* Write data */
+	intRet |= usbiss_i2c_data_wr(self, data, wrLen); 
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go one with STOP BIT to free the bus\n", __FUNCTION__, intRet);
+		}
+	}
+	/* Repeated start + ADR, changes direction to read */
+	intRet |= usbiss_i2c_restartbit(self, (uint8_t) ((adr7 << 1) | USBISS_I2C_RD));
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Startbit failed\n", __FUNCTION__);
+		}
+	}
+	/* Read DATA */
+	intRet |= usbiss_i2c_data_rd(self, data, rdLen); 
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go one with STOP BIT to free the bus\n", __FUNCTION__, intRet);
+		}
+	}
+	/* Stop Bit */
+	intRet |= usbiss_i2c_stopbit(self);
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Stopbit failed, BUS mayby clamped\n", __FUNCTION__);
+		}
+	}
+	/* graceful end */
+    return intRet;
+}
