@@ -264,7 +264,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode );
 /** 
  *  @brief i2c-write
  *
- *  write arbietrary sized data packet to i2c device
+ *  write arbitrary sized data packet to i2c device
  *
  *  @param[in,out]  self                common handle #t_usbiss
  *  @param[in]      adr7                Seven Bit I2C address
@@ -277,6 +277,26 @@ int usbiss_set_mode( t_usbiss *self, const char* mode );
  *  @author         Andreas Kaeberlein
  */
 int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, size_t len );
+
+
+
+/** 
+ *  @brief i2c-read
+ *
+ *  read arbitrary sized data packet from i2c device
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @param[in]      adr7                Seven Bit I2C address
+ *  @param[in,out]  data                read data
+ *  @param[in]      len                 number of requested read bytes
+ *  @return         int                 state
+ *  @retval         0                   OK
+ *  @retval         -1                  FAIL
+ *  @since          July 11, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t len );
+
 
 
 
