@@ -231,6 +231,64 @@ static int usbiss_i2c_startbit( t_usbiss *self, uint8_t adr8 )
 
 
 /**
+ *  @brief I2C Restartbit
+ *
+ *  Sends restart bit in established i2c connection, needed for direction change
+ *
+ *  @param[in,out]  *self           	common handle #t_usbiss
+ *  @param[in]      adr8            	7Bit Slave Adress + 1Bit Direction (Read/Write)
+ *  @return         int
+ *  @retval         0             		OK
+ *  @retval         -1                  FAIL
+ *  @since          July 11, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static int usbiss_i2c_restartbit( t_usbiss *self, uint8_t adr8 ) 
+{
+	/** Variables **/
+	uint8_t			uint8Wr[4];		// write buffer: DIRECT + START + WRITE + 16Bytes + STOP
+	uint8_t			uint8Rd[2];		// read buffer
+	int				intRdLen;		// number of read bytes from terminal
+	char			charBuf[16];	// help buffer for debug outputs
+
+	/* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+	/* Assemble START + ADR packet */
+	uint8Wr[0] = USBISS_I2C_DIRECT;		// USBISS direct mode
+	uint8Wr[1] = USBISS_I2C_RESTART;	// RESTART-BIT
+	uint8Wr[2] = (uint8_t) (USBISS_I2C_WRITE);	// only one address byte written
+	uint8Wr[3] = adr8;				// i2c address + Direction (Read/Write)
+	if ( 4 != simple_uart_write(self->uart, uint8Wr, 4) ) {	// request
+		if ( 0 != self->uint8MsgLevel ) {
+			usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 4);	// convert to ascii
+			printf("  ERROR:%s:REQ: %s\n", __FUNCTION__, charBuf);
+		}
+		return -1;
+	}
+	if ( 0 != self->uint8MsgLevel ) {
+		usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 4);	// convert to ascii
+		printf("  INFO:%s:START:REQ: %s\n", __FUNCTION__, charBuf);
+	}
+	intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
+	if ( 2 != intRdLen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, intRdLen);	
+		}
+		return -1;
+	}
+	if ( USBISS_CMD_ACK != uint8Rd[0] ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Start bit rejected, %s, ero=0x%02x\n", __FUNCTION__, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+		}
+		return (int) (uint8Rd[1]);	// USBISS error code, #USBISS_ERROR
+	}
+	/* function finish */
+	return 0;
+}
+
+
+
+/**
  *  @brief I2C Stopbit
  *
  *  sends I2C stopbit
