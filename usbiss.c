@@ -285,7 +285,7 @@ static int usbiss_i2c_stopbit( t_usbiss *self )
 
 
 /**
- *  @brief I2C Write
+ *  @brief I2C data write
  *
  *  brings only data bytes to I2C lines, Start/Stop bit needs to asserted by dedicated function
  *
@@ -301,14 +301,15 @@ static int usbiss_i2c_stopbit( t_usbiss *self )
 static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len ) 
 {
 	/** Variables **/
-	uint8_t		uint8Wr[32];		// write buffer: DIRECT + START + WRITE + 16Bytes + STOP
-	uint8_t		uint8Rd[4];			// read buffer
-	size_t		dataByteOfs;		// byte offset of current data
-	uint8_t		uint8ChunkBytes;	// number of data bytes at current chunk
-	int			intRdLen;			// number of read bytes from terminal
-	char		charBuf[256];		// help buffer for debug outputs
-	int			intRet;				// internal return code, allows to send stop bit in case of crash
-	size_t		iter;				// loop count
+	uint8_t		uint8Wr[32];	// write buffer: DIRECT + START + WRITE + 16Bytes + STOP
+	uint8_t		uint8Rd[4];		// read buffer
+	size_t		bytesPend;		// number of pending bytes
+	size_t		dataOfs;	// byte offset of current data
+	uint8_t		uint8Chunk;		// number of data bytes at current chunk
+	int			intRdLen;		// number of read bytes from terminal
+	char		charBuf[256];	// help buffer for debug outputs
+	int			intRet;			// internal return code, allows to send stop bit in case of crash
+	size_t		iter;			// loop count
 	
 	/* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
@@ -319,26 +320,27 @@ static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len )
 	/* Data Packets to line */
 	intRet = 0;
 	iter = 0;
-	dataByteOfs = 0;	// next data packet start field
-	while ( dataByteOfs < len ) {
+	dataOfs = 0;	// next data packet start field
+	bytesPend = len;	// all bytes pending
+	while ( bytesPend > 0 ) {
 		/* calc payload size */
-		uint8ChunkBytes = (uint8_t) usbiss_min((size_t) USBISS_I2C_CHUNK, len);	// calculate max number of bytes to send, -1 through i2c adr
+		uint8Chunk = (uint8_t) usbiss_min((size_t) USBISS_I2C_CHUNK, bytesPend);	// calculate max number of bytes to send, -1 through i2c adr
 		/* assemble packet */
 		uint8Wr[0] = USBISS_I2C_DIRECT;	// USBISS direct mode
-		uint8Wr[1] = (uint8_t) (USBISS_I2C_WRITE + uint8ChunkBytes - 1);
-		memcpy(uint8Wr+2, data+dataByteOfs, uint8ChunkBytes);
+		uint8Wr[1] = (uint8_t) (USBISS_I2C_WRITE + uint8Chunk - 1);
+		memcpy(uint8Wr+2, data+dataOfs, uint8Chunk);
 		/* request i2c packet transfer */
-		if ( (uint8ChunkBytes + 2) != simple_uart_write(self->uart, uint8Wr, uint8ChunkBytes + 2) ) {	// request
+		if ( (uint8Chunk + 2) != simple_uart_write(self->uart, uint8Wr, uint8Chunk + 2) ) {	// request
 			if ( 0 != self->uint8MsgLevel ) {
-				usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8ChunkBytes + 2));	// convert to ascii
-				printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataByteOfs, charBuf);
+				usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8Chunk + 2));	// convert to ascii
+				printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
 			}
 			intRet = -1;
 			break;
 		}
 		if ( 0 != self->uint8MsgLevel ) {
-			usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8ChunkBytes + 2));	// convert to ascii
-			printf("  INFO:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataByteOfs, charBuf);
+			usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8Chunk + 2));	// convert to ascii
+			printf("  INFO:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
 		}
 		/* check response */
 		intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
@@ -357,12 +359,70 @@ static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len )
 			break;
 		}
 		/* prepare next cycle */
-		dataByteOfs = dataByteOfs + ((size_t) uint8ChunkBytes);	// update data pointer
+		dataOfs = dataOfs + ((size_t) uint8Chunk);	// update data pointer
+		bytesPend = bytesPend - uint8Chunk;			// update count of pending bytes
 		iter++;
 	}
 	/* finish function */
 	return intRet;
 }
+
+
+
+/**
+ *  @brief I2C data read
+ *
+ *  brings only data bytes to I2C lines, Start/Stop bit needs to asserted by dedicated function
+ *
+ *  @param[in,out]  *self           	common handle #t_usbiss
+ *  @param[out]     data            	data array
+ *  @param[in,out]  len           		number of requested bytes as in, and recieved bytes as out
+ *  @return         int
+ *  @retval         0             		OK
+ *  @retval         -1                  FAIL
+ *  @since          July 10, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t *len ) 
+{
+	/** variables **/
+	uint8_t		uint8Wr[4];			// write buffer: DIRECT + START + WRITE + 16Bytes + STOP
+	uint8_t		uint8Rd[32];		// read buffer
+	size_t		ackBytesPend;		// number of pending bytes with ACK
+	size_t		dataOfs;			// data pointer in array
+	uint8_t		uint8Chunk;			// number of data bytes at current chunk
+	int			intRdLen;			// number of read bytes from terminal
+	
+	/* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+	/* empty frame provided */
+	if ( 0 == len ) {
+		return 0;
+	}
+	/* request ACK Bytes, last byte need NCK */
+	dataOfs = 0;
+	if ( *len > 1 ) {
+		ackBytesPend = *len - 1;
+		while ( ackBytesPend > 0 ) {
+			/* calc number of requested bytes size */
+			uint8Chunk = (uint8_t) usbiss_min((size_t) USBISS_I2C_CHUNK, ackBytesPend);	// calculate max number of bytes to send, -1 through i2c adr
+			/* assemble packet */
+			uint8Wr[0] = USBISS_I2C_DIRECT;	// USBISS direct mode
+			uint8Wr[1] = (uint8_t) (USBISS_I2C_WRITE + uint8Chunk - 1);
+			
+			
+			
+		}
+	}
+	/* request last byte, NCK */
+	
+
+
+
+
+	return 0;
+}
+
 
 
 
@@ -570,7 +630,6 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
 	int			intWrLen;		// write packet length
 	int			intRdLen;
 	
-	
 	/* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
 	/* USBISS open? */
@@ -701,8 +760,52 @@ int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, size_t len )
  */
 int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t *len )
 {
-
-
-	return 0;
+	/** Variables **/
+	int				intRet;			// internal return code, allows to send stop bit in case of crash
+	
+	/* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+	/* empty frame provided */
+	if ( 0 == len ) {
+		return 0;
+	}
+	/* USBISS open? */
+	if ( !self->uint8IsOpen ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS connection not open\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* I2C mode setted? */
+	if ( 0 != usbiss_is_i2c_mode(self->uint8Mode) ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: USBISS is configured for non I2C mode\n", __FUNCTION__);	
+		}
+		return -1;
+	}
+	/* Startbit + ADR */
+	intRet = usbiss_i2c_startbit(self, (uint8_t) ((adr7 << 1) | USBISS_I2C_RD));
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Startbit failed\n", __FUNCTION__);
+		}
+		return intRet;
+	}
+	/* read data */
+		// TODO
+	
+	
+	
+	
+	/* Stop Bit */
+	intRet = usbiss_i2c_stopbit(self);
+	if ( 0 != intRet ) {
+		if ( 0 != self->uint8MsgLevel ) {
+			printf("  ERROR:%s: Stopbit failed, BUS mayby clamped\n", __FUNCTION__);
+		}
+		return intRet;
+	}
+	/* graceful end */
+    return intRet;
 }
 
