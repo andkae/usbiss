@@ -109,42 +109,46 @@ void usbiss_term_help(const char path[])
     if (system("clear")) {};
 
     /* print help */
-    printf("\n");
-    printf("USBISS V%s - a CLI tool to interact with the USB-ISS\n", USBISS_TERM_VERSION);
-    printf("  http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm\n");
-    printf("\n");
-    printf("Usage:\n");
-    printf("  %s --options... \n", path);
-    printf("\n");
-    printf("Options:\n");
-    printf("  -p, --port=[<UART>]         USB-ISS belonging <UART> port\n");
-	printf("            =[COM1]             Windows default\n");
-	printf("            =[/dev/ttyACM0]     Linux default\n");
-    printf("  -b, --baud=[115200]         UART baud rate\n");
-    printf("  -m, --mode=[I2C_S_100KHZ]   I2C transfer mode\n");
-    printf("                                Standard [I2C_S_20KHZ  | I2C_S_50KHZ  | I2C_S_100KHZ | I2C_S_400KHZ]\n");
-	printf("                                Fast     [I2C_H_100KHZ | I2C_H_400KHZ | I2C_H_1000KHZ]\n");
-    printf("  -c, --command=\"{<pkg>}\"     Data packet to transfer\n");
-    printf("                                <adr7> w <b0> <bn>    : I2C write access with arbitrary number of write bytes <bn>\n");
-	printf("                                <adr7> r <cnt>        : I2C read access with <cnt> bytes read\n");
-	printf("                                <adr7> w <bn> r <cnt> : I2C write access followed by repeated start with read access\n");
-    printf("  -h, --help                  Help\n");
-	printf("  -v, --version               Version\n");
-    printf("      --verbose               Advanced output\n");
-    printf("      --brief                 Only mandatory output\n");
-    printf("\n");
-    printf("Return Value:\n");
-    printf("   0   OK\n");
-    printf("   1   Error, check log for details\n");
-    printf("\n");
-    printf("UART Ports:\n");
-	printf("\n");
-	printf("Authors:\n");
-    printf("  Andreas Kaeberlein         andreas.kaeberlein@siemens.com\n");
-    printf("\n");
-    printf("Contribute:\n");
-    printf("  https://github.com/andkae/usbiss\n");
-    printf("\n");
+    printf(
+		"\n"
+		"USBISS V%s - a CLI tool to interact with the USB-ISS\n"
+		"  http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm\n"
+		"\n"
+		"Usage:\n"
+		"  %s --options... \n"
+		"\n"
+		"Options:\n"
+		"  -p, --port=[<UART>]         USB-ISS belonging <UART> port\n"
+		"            =[COM1]             Windows default\n"
+		"            =[/dev/ttyACM0]     Linux default\n"
+		"  -b, --baud=[115200]         UART baud rate\n"
+		"  -m, --mode=[I2C_S_100KHZ]   I2C transfer mode\n"
+		"                                Standard [I2C_S_20KHZ  | I2C_S_50KHZ  | I2C_S_100KHZ | I2C_S_400KHZ]\n"
+		"                                Fast     [I2C_H_100KHZ | I2C_H_400KHZ | I2C_H_1000KHZ]\n"
+		"  -c, --command=\"{<pkg>}\"     Data packet to transfer\n"
+		"                                <adr7> w <b0> <bn>    : I2C write access with arbitrary number of write bytes <bn>\n"
+		"                                <adr7> r <cnt>        : I2C read access with <cnt> bytes read\n"
+		"                                <adr7> w <bn> r <cnt> : I2C write access followed by repeated start with read access\n"
+		"  -h, --help                  Help\n"
+		"  -v, --version               Version\n"
+		"      --verbose               Advanced output\n"
+		"      --brief                 Only mandatory output\n"
+		"\n"
+		"Return Value:\n"
+		"  0   OK\n"
+		"  1   Error, check log for details\n"
+		"\n"
+		"UART Ports:\n"
+		"\n"
+		"Authors:\n"
+		"  Andreas Kaeberlein   andreas.kaeberlein@siemens.com\n"
+		"\n"
+		"Contribute:\n"
+		"  https://github.com/andkae/usbiss\n"
+		"\n",
+		USBISS_TERM_VERSION,
+		path
+	);
 }
 
 
