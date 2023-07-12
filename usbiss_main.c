@@ -29,14 +29,123 @@
 #include <stddef.h>         // offsetof - offset of a structure member
 #include <math.h>           // round
 /** Custom Libs **/
-#include "./inc/simple_uart/simple_uart.h"	// cross platform UART driver
+#include "simple_uart.h"	// cross platform UART driver
 #include "usbiss.h"			// USBISS driver
-/** self **/
-#include "usbiss_main.h"	// some defs
 
 
 
+/**
+ *  @defgroup HELP_CONSTANTS
+ *  help constants for programm
+ *  @{
+ */
+#define USBISS_TERM_VERSION     "0.0.1"    	/**< Programm version */
+#define MSG_LEVEL_BRIEF 		0           /**< Brief Message level */
+#define MSG_LEVEL_NORM  		1           /**< Normal Message level */
+#define MSG_LEVEL_VERB  		2           /**< Verbose Message Level */
+/** @} */   // HELP_CONSTANTS
 
+
+
+/**
+ *  @brief print hexdump
+ *
+ *  dumps memory segment as ascii hex
+ *
+ *  @param[in]      leadBlank       number of leading blanks in hex line
+ *  @param[in,out]  *mem            pointer to memory segment
+ *  @param[in,out]  size            number of bytes in *mem to print
+ *  @return         void
+ *
+ */
+static void print_hexdump (char leadBlank[], void *mem, size_t size)
+{
+    /** Variables **/
+    char        charBuf[32];        // character buffer
+    uint8_t     uint8NumAdrDigits;  // number of address digits
+
+    
+	/* check for size */
+	if ( 0 == size ) {
+		return;
+	}
+	/* acquire number of digits for address */
+    snprintf(charBuf, sizeof(charBuf), "%lx", size-1);	// convert to ascii for address digits calc, -1: addresses start at zero
+    uint8NumAdrDigits = (uint8_t) strlen(charBuf);
+    /* print to console */
+    for ( size_t i = 0; i < size; i = (i + 16) ) {
+        /* print address line */
+        printf("%s%0*lx:  ", leadBlank, uint8NumAdrDigits, i);
+        /* print hex values */
+        for ( uint8_t j = 0; j < 16; j++ ) {
+            /* out of memory */
+            if ( !((i+j) < size) ) {
+                break;
+            }
+            /* print */
+            printf("%02x ", ((uint8_t*) mem)[i+j]);
+			/* divide high / low byte */
+			if ( 7 == j ) {
+				printf(" ");
+			}
+        }
+        printf("\n");
+    }
+}
+
+
+
+// **************************************************************************
+// Function: to print help command
+// **************************************************************************
+void usbiss_term_help(const char path[])
+{
+    /** Variables **/
+    char*       charPtrTyps;
+    uint32_t    uint32TypsLen;
+
+
+    /* clear console */
+    if (system("clear")) {};
+
+    /* print help */
+    printf("\n");
+    printf("USBISS V%s - a CLI tool to interact with the USB-ISS\n", USBISS_TERM_VERSION);
+    printf("  http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm\n");
+    printf("\n");
+    printf("Usage:\n");
+    printf("  %s --options... \n", path);
+    printf("\n");
+    printf("Options:\n");
+    printf("  -p, --port=[<UART>]         USB-ISS belonging <UART> port\n");
+	printf("            =[COM1]             Windows default\n");
+	printf("            =[/dev/ttyACM0]     Linux default\n");
+    printf("  -b, --baud=[115200]         UART baud rate\n");
+    printf("  -m, --mode=[I2C_S_100KHZ]   I2C transfer mode\n");
+    printf("                                Standard [I2C_S_20KHZ  | I2C_S_50KHZ  | I2C_S_100KHZ | I2C_S_400KHZ]\n");
+	printf("                                Fast     [I2C_H_100KHZ | I2C_H_400KHZ | I2C_H_1000KHZ]\n");
+    printf("  -c, --command=\"{<pkg>}\"     Data packet to transfer\n");
+    printf("                                <adr7> w <b0> <bn>    : I2C write access with arbitrary number of write bytes <bn>\n");
+	printf("                                <adr7> r <cnt>        : I2C read access with <cnt> bytes read\n");
+	printf("                                <adr7> w <bn> r <cnt> : I2C write access followed by repeated start with read access\n");
+    printf("  -h, --help                  Help\n");
+	printf("  -v, --version               Version\n");
+    printf("      --verbose               Advanced output\n");
+    printf("      --brief                 Only mandatory output\n");
+    printf("\n");
+    printf("Return Value:\n");
+    printf("   0   OK\n");
+    printf("   1   Error, check log for details\n");
+    printf("\n");
+    printf("UART Ports:\n");
+	printf("\n");
+	printf("Authors:\n");
+    printf("  Andreas Kaeberlein         andreas.kaeberlein@siemens.com\n");
+    printf("\n");
+    printf("Contribute:\n");
+    printf("  https://github.com/andkae/usbiss\n");
+    printf("\n");
+}
 
 
 
@@ -64,11 +173,12 @@ int main (int argc, char *argv[])
 		{"baud",        required_argument,  0,  'b'},
 		{"mode",        required_argument,  0,  'm'},
         {"command",     required_argument,  0,  'c'},
+		{"version",     no_argument,  		0,  'v'},
         {"help",        no_argument,        0,  'h'},
         /* Protection */
         {0,             0,                  0,  0 }     // NULL
     };
-    static const char shortopt[] = "p:b:m:c:h";
+    static const char shortopt[] = "p:b:m:c:hv";
 
 
 
@@ -78,8 +188,7 @@ int main (int argc, char *argv[])
 			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) { printf("[ FAIL ]   Root rights required! Try 'sudo %s'\n", argv[0]); }
 			goto ERO_END_L0;
 		}
-	#endif;
-
+	#endif
 
     /* no param, no operation */
     if (argc < 2) {
@@ -90,12 +199,10 @@ int main (int argc, char *argv[])
         goto ERO_END_L0;
     }
 
-
 	/* flag defaults */
 	uint32BaudRate = 0;		// use usbiss defaults
 	charPort[0] = '\0';		// use defaults
 	charMode[0] = '\0';		// no change
-
 
 	/* Parse CLI */
 	while (-1 != (opt = getopt_long(argc, argv, shortopt, longopt, &arg_index))) {
@@ -139,8 +246,16 @@ int main (int argc, char *argv[])
 			
             /* Print command line options */
             case 'h':
-                //usbiss_help(argv[0]);	// TODO
-                goto GD_END_L0;
+                usbiss_term_help(argv[0]);
+                uint8MsgLevel = MSG_LEVEL_BRIEF;	// avoid normal end message
+				goto GD_END_L0;
+                break;
+
+            /* Print version to console */
+            case 'v':
+                printf("V%s\n", USBISS_TERM_VERSION);
+                uint8MsgLevel = MSG_LEVEL_BRIEF;	// avoid normal end message
+				goto GD_END_L0;
                 break;
 
             /* Something went wrong */
@@ -152,13 +267,10 @@ int main (int argc, char *argv[])
         }
     }
 
-
     /* Entry Message */
     if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
         printf("[ INFO ]   USBISS started\n");
-        printf("             %s\n", VERSION);
     }
-
 
 	/* init USBISS handle */
 	if ( 0 != usbiss_init(&usbiss) ) {
@@ -166,12 +278,10 @@ int main (int argc, char *argv[])
 		goto ERO_END_L0;
 	}
 	
-	
 	/* propagate message level */
 	if ( MSG_LEVEL_VERB == uint8MsgLevel ) {
 		usbiss_set_verbose(&usbiss, 1);	// enable advanced output
 	}
-	
 	
 	/* open UART Port */
 	if ( 0 != usbiss_open(&usbiss, charPort, uint32BaudRate) ) {
@@ -189,7 +299,6 @@ int main (int argc, char *argv[])
 		printf("             Serial   : %s\n", usbiss.charSerial);
 	}
 	
-	
 	/* set mode */
 	if ( 0 < strlen(charMode) ) {
 		if ( 0 != usbiss_set_mode(&usbiss, charMode) ) {
@@ -203,9 +312,42 @@ int main (int argc, char *argv[])
 
 
 
-
-
-
+	/* todo */
+		// write test data
+	uint8_t data[256];
+	for (uint8_t i=0; i < 64; i++ ) {
+		data[i] = i;
+		//data[i] = 0xff;
+	}
+	data[0] =0x00; 
+	data[1] =0x00; 
+	if ( 0 != usbiss_i2c_wr(&usbiss, 0x50, data, 64) ) {
+		goto ERO_END_L1;
+	}
+	usleep(5100);	// wait for complete
+		// set address counter to zero
+	data[0] =0x00; 
+	data[1] =0x00; 
+	if ( 0 != usbiss_i2c_wr(&usbiss, 0x50, data, 2) ) {
+		goto ERO_END_L1;
+	}
+	usleep(5100);	// wait for complete
+		// read data
+	if ( 0 != usbiss_i2c_rd(&usbiss, 0x50, data, 256) ) {
+		goto ERO_END_L1;
+	}
+	print_hexdump("  ", data, 256);
+	usleep(5100);	// wait for complete
+	data[0] =0x00; 
+	data[1] =0x00;
+	if ( 0 != usbiss_i2c_wr_rd(&usbiss, 0x50, data, 2, 256) ) {
+		goto ERO_END_L1;
+	}
+	print_hexdump("  ", data, 256);
+	usleep(5100);	// wait for complete	
+	
+	
+	
 
 
     /* gracefull end */
