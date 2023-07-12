@@ -25,7 +25,7 @@ LINKER = gcc
 
 # set compiler flags
 ifeq ($(origin CFLAGS), undefined)
-  CFLAGS = -c -O -Wall -Wextra -Wimplicit -Wconversion
+  CFLAGS = -c -O -Wall -Wextra -Wimplicit -Wconversion -I . -I ./inc/simple_uart
 endif
 
 # linking flags here

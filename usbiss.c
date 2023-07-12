@@ -30,7 +30,7 @@
 #include <strings.h>    // stringcasecmp
 #include <stdarg.h>     // variable parameter list
 /** Custom Libs **/
-#include "./inc/simple_uart/simple_uart.h"  // cross platform UART driver
+#include "simple_uart.h"    // cross platform UART driver
 /** self **/
 #include "usbiss.h"     // some defs
 
