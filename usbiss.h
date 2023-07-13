@@ -245,6 +245,22 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
 
 
 /**
+ *  @brief close
+ *
+ *  close connection to USBISS
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @return         int                 state
+ *  @retval         0                   OK
+ *  @retval         -1                  FAIL
+ *  @since          Juy 13, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_close( t_usbiss *self );
+
+
+
+/**
  *  @brief open
  *
  *  open connection to USBISS

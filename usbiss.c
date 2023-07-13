@@ -746,6 +746,36 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
 
 
 /**
+ *  usbiss_close
+ *    close UART handle
+ */
+int usbiss_close( t_usbiss *self )
+{
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* close UART handle */
+    if ( self->uint8IsOpen ) {
+        self->uint8IsOpen = 0;  // close handle
+        if ( 0 != simple_uart_close(self->uart) ) {
+            if ( 0 != self->uint8MsgLevel ) {
+                printf("  ERROR:%s: close UART handle\n", __FUNCTION__);
+            }
+            return -1;
+        }
+    }
+    /* make invalid */
+    self->charPort[0] = '\0';
+    self->uint32BaudRate = 0;
+    self->uint8Mode = __UINT8_MAX__;
+    self->uint8Fw = 0;
+    self->charSerial[0] = '\0';
+    /* graceful end */
+    return 0;
+}
+
+
+
+/**
  *  usbiss_set_mode
  *    set USBISS transfer mode
  */
