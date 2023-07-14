@@ -253,7 +253,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
  *  @return         int                 state
  *  @retval         0                   OK
  *  @retval         -1                  FAIL
- *  @since          Juy 13, 2023
+ *  @since          July 13, 2023
  *  @author         Andreas Kaeberlein
  */
 int usbiss_close( t_usbiss *self );
