@@ -48,6 +48,24 @@
 
 
 /**
+ *  @defgroup MAX
+ *
+ *  @brief MAX
+ *
+ *  Calculates MAX of two numbers
+ *
+ *  @since  2023-07-14
+ *  @see https://stackoverflow.com/questions/3437404/min-and-max-in-c
+ */
+ #define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+/** @} */   // MIN_MAX
+
+
+
+/**
  *  @brief print hexdump
  *
  *  dumps memory segment as ascii hex
@@ -56,7 +74,7 @@
  *  @param[in,out]  *mem            pointer to memory segment
  *  @param[in,out]  size            number of bytes in *mem to print
  *  @return         void
- *
+ *  @since          July 7, 2023
  */
 static void print_hexdump (char leadBlank[], void *mem, size_t size)
 {
@@ -95,19 +113,203 @@ static void print_hexdump (char leadBlank[], void *mem, size_t size)
 
 
 
+/**
+ *  @brief sprint_hex
+ *
+ *  write data to hex string
+ *
+ *  @param[in]      leadBlank       number of leading blanks in hex line
+ *  @param[in,out]  *mem            pointer to memory segment
+ *  @param[in,out]  size            number of bytes in *mem to print
+ *  @return         void
+ *  @since          July 7, 2023
+ */
+static void sprint_hex (char *str, void *mem, size_t size)
+{
+	/** Variables **/
+	size_t 	i;
+	char	hex[4];
+	
+	/* convert to hex */
+	for ( i = 0; i < size; i++ ) {
+		snprintf(hex, sizeof(hex), "%02x ", ((uint8_t*) mem)[i]);
+		strncpy(str+i*3, hex, 3); 
+	}
+	/* last blank gets terminator */
+	*(str+(i*3-1)) = '\0';
+}
+
+
+
+/**
+ *  @brief count char
+ *
+ *  count char occurance in string
+ *
+ *  @param[in]      str       		string with char to llok for
+ *  @param[in]  	c            	character to look for
+ *  @return         int				count with occurence of 'c'
+ *  @since          July 13, 2023
+ */
+static int cnt_chr (char *str, char c)
+{
+	/** variables **/
+	int	cnt = 0;
+	
+	/* count */
+	for ( size_t i = 0; i < strlen(str); i++ ) {
+		if ( c == str[i] ) {
+			++cnt;
+		}
+	}
+	return cnt;
+}
+
+
+
+/**
+ *  @brief to_int
+ *
+ *  converts string to int
+ *
+ *  @param[in]      str       		string with char to llok for
+ *  @return         int				converted number
+ *  @since          July 13, 2023
+ */
+static int to_int (char *str)
+{
+	int	ret = 0;
+	
+	/* check for length */
+	if ( 2 < strlen(str) ) {	// possible '0x' or '0b'
+		if ( ('0' == str[0]) && (('x' == str[1]) || ('X' == str[1])) ) {
+			ret = (int) strtol(str+2, NULL, 16);
+		} else {
+			ret = (int) atoi(str);	// integer number convert
+		}
+	} else {
+		ret = (int) atoi(str);	// integer number convert
+	}
+	return ret;
+}
+
+
+/**
+ *  @brief process command
+ *
+ *  count char occurance in string
+ *
+ *  @param[in]      str       		string with char to llok for
+ *  @param[in]  	c            	character to look for
+ *  @return         int				count with occurence of 'c'
+ *  @since          July 13, 2023
+ */
+static int process_cmd (char *str, uint8_t *adr, uint8_t **data, uint32_t *wrLen, uint32_t *rdLen)
+{
+	/** Variables **/
+	char		access;
+	uint32_t	i;
+	char 		*split;	
+	char 		*ptr;
+
+	/* set defaults */
+	*adr = __UINT8_MAX__;
+	*wrLen = 0;
+	*rdLen = 0;
+	/* check for proper string */
+	if ( (1 < cnt_chr(str, 'w')) || (1 < cnt_chr(str, 'r')) ) {
+		return 1;	// wrong command sequence
+	}
+	/* copy string to avoid mess up original one */
+	split = malloc(strlen(str)+1);
+	if ( NULL == split ) {
+		return 2;	// mem alloc failed
+	}
+	strncpy(split, str, strlen(str)+1);
+	/* count bytes for read /write */
+	i = 0;
+	access = ' ';
+	ptr = strtok(split, " ");	// split blank
+	while( NULL != ptr ) {
+		/* process address */
+		if ( 0 == i ) {
+			*adr = (uint8_t) to_int(ptr);
+		}
+		/* process non address */
+		if ( 0 != i ) {
+			if ( 0 < strlen(ptr) ) {
+				if ( ('r' == ptr[0]) || ('w' == ptr[0]) ) {
+					access = ptr[0];
+				} else {
+					if ( 'w' == access ) {
+						++(*wrLen);
+					} else if ( 'r' == access ) {
+						*rdLen = (uint32_t) to_int(ptr);
+					} else {
+						return 4;
+					}
+				}
+			}
+		}
+		/* prepare nest */
+		++i;
+		ptr = strtok(NULL, " ");
+	}
+	/* allocate memory according array dimensions */
+	*data = malloc(max(*wrLen, *rdLen));
+	if ( *wrLen > 0 ) {
+		/* reset write counter */
+		*wrLen = 0;
+		/* copy string */
+		strncpy(split, str, strlen(str)+1);
+		/* count bytes for read /write */
+		i = 0;
+		access = ' ';
+		ptr = strtok(split, " ");	// split blank
+		while( NULL != ptr ) {
+			/* process non address */
+			if ( 0 != i ) {
+				if ( 0 < strlen(ptr) ) {
+					if ( ('r' == ptr[0]) || ('w' == ptr[0]) ) {
+						access = ptr[0];
+					} else {
+						if ( 'w' == access ) {
+							(*data)[*wrLen] = (uint8_t) to_int(ptr);
+							++(*wrLen);
+						}
+					}
+				}
+			}
+			/* prepare nest */
+			++i;
+			ptr = strtok(NULL, " ");
+		}
+	}
+	/* all fine */
+	free(split);
+	return 0;
+}
+
+
+
 // **************************************************************************
 // Function: to print help command
 // **************************************************************************
 void usbiss_term_help(const char path[])
 {
     /** Variables **/
-    char*       charPtrTyps;
-    uint32_t    uint32TypsLen;
+	char	**uartNames;
+	char 	**uartDescriptions;
+	int 	numUarts;
 
+	/* build string with UART ports */
+	numUarts = simple_uart_list(&uartNames, &uartDescriptions);	// get UART ports from system
+	for (int i = 0; i < numUarts; i++) {
+		//printf("Port %d: %s: %s\n", i, uartNames[i], (uartDescriptions && uartDescriptions[i]) ? uartDescriptions[i] : "unknown");
+	}
 
     /* clear console */
     if (system("clear")) {};
-
     /* print help */
     printf(
 		"\n"
@@ -159,12 +361,20 @@ void usbiss_term_help(const char path[])
 int main (int argc, char *argv[])
 {
 	/** Variables **/
-	uint8_t					uint8MsgLevel = MSG_LEVEL_NORM;		// message level
-	uint32_t				uint32BaudRate;						// CLI: baud rate
-	char					charPort[128];						// CLI: port
-	char					charMode[128];						// CLI: change mode
-	t_usbiss				usbiss;								// usbiss handle
-
+	t_usbiss				usbiss;							// usbiss handle
+	uint8_t					uint8MsgLevel = MSG_LEVEL_NORM;	// message level
+	uint32_t				uint32BaudRate;					// CLI: baud rate
+	char					charPort[128];					// CLI: port
+	char					charMode[128];					// CLI: change mode
+	char*					charPtrCmd;						// CLI: operation command
+	char*					charPtrBuf;						// buffer help variable
+	uint8_t					uint8I2cAdr = __UINT8_MAX__;	// i2c address
+	uint8_t*				uint8PtrWrRd = NULL;			// array with write/read data
+	uint32_t				uint32WrLen;					// number of write elements in uint8PtrWrRd
+	uint32_t				uint32RdLen;					// number of read elements in uint8PtrWr
+	uint8_t*				uint8PtrHelp = NULL;			// help variable for wr-rd i2c function
+	
+	
     /* command line parser */
     int opt;                            // switch for parameter
     int arg_index = 0;                  // argument index
@@ -182,7 +392,7 @@ int main (int argc, char *argv[])
         /* Protection */
         {0,             0,                  0,  0 }     // NULL
     };
-    static const char shortopt[] = "p:b:m:c:hv";
+    static const char shortopt[] = "p:b:m:c:vh";
 
 
 
@@ -207,6 +417,7 @@ int main (int argc, char *argv[])
 	uint32BaudRate = 0;		// use usbiss defaults
 	charPort[0] = '\0';		// use defaults
 	charMode[0] = '\0';		// no change
+	charPtrCmd = NULL;		// no command
 
 	/* Parse CLI */
 	while (-1 != (opt = getopt_long(argc, argv, shortopt, longopt, &arg_index))) {
@@ -247,6 +458,12 @@ int main (int argc, char *argv[])
 				/* copy user path */
 				strncpy(charMode, optarg, sizeof(charMode));
                 break;
+				
+            /* process '--command<cmd>' argument */
+            case 'c':
+				charPtrCmd = malloc(strlen(optarg) + 2);
+				strncpy(charPtrCmd, optarg, strlen(optarg) + 2);
+				break;
 			
             /* Print command line options */
             case 'h':
@@ -287,6 +504,16 @@ int main (int argc, char *argv[])
 		usbiss_set_verbose(&usbiss, 1);	// enable advanced output
 	}
 	
+	/* check for proper command */
+	if ( NULL == charPtrCmd ) {
+		printf("[ FAIL ]   no transfer requested, use -c for proper args\n");
+		goto ERO_END_L0;
+	}
+	if ( 0 != process_cmd(charPtrCmd, &uint8I2cAdr, &uint8PtrWrRd, &uint32WrLen, &uint32RdLen) ) {
+		printf("[ FAIL ]   option '-c %s' unsupported, use --help for proper read/write command\n", charPtrCmd);
+		goto ERO_END_L0;		
+	}
+	
 	/* open UART Port */
 	if ( 0 != usbiss_open(&usbiss, charPort, uint32BaudRate) ) {
 		if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
@@ -314,48 +541,84 @@ int main (int argc, char *argv[])
 		printf("             Mode     : %s\n", usbiss_mode_to_human(usbiss.uint8Mode));
 	}
 
-
-
-	/* todo */
-		// write test data
-	uint8_t data[256];
-	for (uint8_t i=0; i < 64; i++ ) {
-		data[i] = i;
-		//data[i] = 0xff;
+	/* perform access */
+	if ( (0 != uint32WrLen) && (0 == uint32RdLen) ) {
+		/* write access only */
+		if ( 0 == usbiss_i2c_wr(&usbiss, uint8I2cAdr, (void*) uint8PtrWrRd, (size_t) uint32WrLen) ) {
+			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+				printf("[ OKAY ]   Write %i bytes to device 0x%02x\n", uint32WrLen, uint8I2cAdr);
+				print_hexdump("             ", uint8PtrWrRd, uint32WrLen);
+			}
+		} else {
+			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+				printf("[ FAIL ]   Write %i bytes to device 0x%02x\n", uint32WrLen, uint8I2cAdr);
+			}
+			goto ERO_END_L1;
+		}
+	} else if ( (0 == uint32WrLen) && (0 != uint32RdLen) ) {
+		/* read access only */
+		if ( 0 == usbiss_i2c_rd(&usbiss, uint8I2cAdr, (void*) uint8PtrWrRd, (size_t) uint32RdLen) ) {
+			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+				printf("[ OKAY ]   Read %i bytes from device 0x%02x\n", uint32RdLen, uint8I2cAdr);
+				print_hexdump("             ", uint8PtrWrRd, uint32RdLen);
+			} else {
+				charPtrBuf = malloc(3*uint32RdLen+1);
+				if ( NULL != charPtrBuf ) {
+					sprint_hex(charPtrBuf, uint8PtrWrRd, uint32RdLen);
+					printf("%s\n", charPtrBuf);
+					free(charPtrBuf);
+				}
+			}
+		} else {
+			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+				printf("[ FAIL ]   Read %i bytes from device 0x%02x\n", uint32RdLen, uint8I2cAdr);
+			}
+			goto ERO_END_L1;
+		}
+	} else if ( (0 != uint32WrLen) && (0 != uint32RdLen) ) {
+		/* write-read access only */
+			// save write data
+		uint8PtrHelp = malloc(uint32WrLen);
+		if ( NULL != uint8PtrHelp ) {
+			memcpy(uint8PtrHelp, uint8PtrWrRd, uint32WrLen);
+		}
+			// perform access
+		if ( 0 == usbiss_i2c_wr_rd(&usbiss, uint8I2cAdr, (void*) uint8PtrWrRd, (size_t) uint32WrLen, (size_t) uint32RdLen) ) {
+			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+				printf("[ OKAY ]   Write/Read interaction with device 0x%02x\n", uint8I2cAdr);
+				printf("           Write %i Bytes\n", uint32WrLen);
+				if ( NULL != uint8PtrHelp ) {
+					print_hexdump("             ", uint8PtrHelp, uint32WrLen);
+					free(uint8PtrHelp);
+				}
+				printf("           Read %i Bytes\n", uint32RdLen);
+				print_hexdump("             ", uint8PtrWrRd, uint32RdLen);
+			} else {
+				charPtrBuf = malloc(3*uint32RdLen+1);
+				if ( NULL != charPtrBuf ) {
+					sprint_hex(charPtrBuf, uint8PtrWrRd, uint32RdLen);
+					printf("%s\n", charPtrBuf);
+					free(charPtrBuf);
+				}
+			}
+		} else {
+			if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+				printf("[ FAIL ]   Write %i and Read %i bytes from device 0x%02x\n", uint32WrLen, uint32RdLen, uint8I2cAdr);
+			}
+			goto ERO_END_L1;
+		}
 	}
-	data[0] =0x00; 
-	data[1] =0x00; 
-	if ( 0 != usbiss_i2c_wr(&usbiss, 0x50, data, 64) ) {
-		goto ERO_END_L1;
-	}
-	usleep(5100);	// wait for complete
-		// set address counter to zero
-	data[0] =0x00; 
-	data[1] =0x00; 
-	if ( 0 != usbiss_i2c_wr(&usbiss, 0x50, data, 2) ) {
-		goto ERO_END_L1;
-	}
-	usleep(5100);	// wait for complete
-		// read data
-	if ( 0 != usbiss_i2c_rd(&usbiss, 0x50, data, 256) ) {
-		goto ERO_END_L1;
-	}
-	print_hexdump("  ", data, 256);
-	usleep(5100);	// wait for complete
-	data[0] =0x00; 
-	data[1] =0x00;
-	if ( 0 != usbiss_i2c_wr_rd(&usbiss, 0x50, data, 2, 256) ) {
-		goto ERO_END_L1;
-	}
-	print_hexdump("  ", data, 256);
-	usleep(5100);	// wait for complete	
 	
+    /* mostly done, clean-up */
+	free(uint8PtrWrRd);
+	free(charPtrCmd);
+    if ( 0 != usbiss_close(&usbiss) ) {
+		printf("[ FAIL ]   close USBISS connection\n");
+		goto ERO_END_L0;
+	}
 	
-	
-
-
-    /* gracefull end */
-    goto GD_END_L0; // avoid compile warning
+	/* gracefull end */
+	goto GD_END_L0; // avoid compile warning
     GD_END_L0:
 		if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
 			printf("[ OKAY ]   ended normally\n");
@@ -365,7 +628,7 @@ int main (int argc, char *argv[])
     /* Error L1 End */
 	goto ERO_END_L1;
 	ERO_END_L1:
-		while (0) {};	// todo, close UART connection
+		usbiss_close(&usbiss);	// ero end, try to close connection
 	/* Error L0 End */
     goto ERO_END_L0;
 	ERO_END_L0:
@@ -375,4 +638,3 @@ int main (int argc, char *argv[])
         exit(EXIT_FAILURE);
 
 }
-
