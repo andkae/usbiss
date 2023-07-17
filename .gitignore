@@ -18,3 +18,11 @@
 
 # Executable
 /bin/**
+#
+
+
+# MS Visio Code
+#
+/build/**
+/.vscode/**
+#
