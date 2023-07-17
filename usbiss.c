@@ -103,6 +103,7 @@ static void usbiss_uint8_to_asciihex( char *buf, uint32_t buflen, uint8_t *dat, 
 }
 
 
+
 /**
  *  mode-to-str
  *    converts USBISS mode to human readable string
@@ -601,6 +602,18 @@ char *usbiss_ero_str(uint8_t error)
         default:                strncpy(str, "UNKNOWN",          sizeof(str)); break;
     }
     return str;
+}
+
+
+
+/**
+ *  usbiss_list_uart
+ *    List suitable port for USB-ISS connection
+ */
+int usbiss_list_uart( char *str, size_t len )
+{
+	
+	return 0;
 }
 
 
