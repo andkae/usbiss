@@ -410,27 +410,27 @@ static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len )
         if ( ((uint32_t) (uint8Chunk + 2)) != usbiss_uart_write(self, uint8Wr, (uint32_t) (uint8Chunk + 2)) ) { // request
             if ( 0 != self->uint8MsgLevel ) {
                 usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8Chunk + 2));   // convert to ascii
-                printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
+                printf("  ERROR:%s:PKG=%zi:OFS=0x%zx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
             }
             intRet = -1;
             break;
         }
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8Chunk + 2));   // convert to ascii
-            printf("  INFO:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
+            printf("  INFO:%s:PKG=%zi:OFS=0x%zx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
         }
         /* check response */
         intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
         if ( 2 != intRdLen ) {
             if ( 0 != self->uint8MsgLevel ) {
-                printf("  ERROR:%s:PKG=%li:RSP: Unexpected number of %i bytes received\n", __FUNCTION__, iter, intRdLen);
+                printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i bytes received\n", __FUNCTION__, iter, intRdLen);
             }
             intRet = -1;
             break;
         }
         if ( USBISS_CMD_ACK != uint8Rd[0] ) {
             if ( 0 != self->uint8MsgLevel ) {
-                printf("  ERROR:%s:PKG=%li: packet rejected, %s, ero=0x%02x\n", __FUNCTION__, iter, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+                printf("  ERROR:%s:PKG=%zi: packet rejected, %s, ero=0x%02x\n", __FUNCTION__, iter, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
             }
             intRet = (int) (uint8Rd[1]);    // USBISS error code
             break;
@@ -493,7 +493,7 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
             if ( 2 != usbiss_uart_write(self, uint8Wr, 2) ) {   // request
                 if ( 0 != self->uint8MsgLevel ) {
                     usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 2);  // convert to ascii
-                    printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
+                    printf("  ERROR:%s:PKG=%zi:OFS=0x%zx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
                 }
                 return -1;
             }
@@ -501,26 +501,26 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
             intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
             if ( (uint8Chunk + 2) != intRdLen ) {
                 if ( 0 != self->uint8MsgLevel ) {
-                    printf("  ERROR:%s:PKG=%li:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, intRdLen, uint8Chunk + 2);
+                    printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, intRdLen, uint8Chunk + 2);
                 }
                 return -1;
             }
             /* user message */
             if ( 0 != self->uint8MsgLevel ) {
                 usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Rd, (uint32_t) (uint8Chunk + 2));   // convert to ascii
-                printf("  INFO:%s:PKG=%li:OFS=0x%lx:RSP: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
+                printf("  INFO:%s:PKG=%zi:OFS=0x%zx:RSP: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
             }
             /* check response byte */
             if ( USBISS_CMD_ACK != uint8Rd[0] ) {
                 if ( 0 != self->uint8MsgLevel ) {
-                    printf("  ERROR:%s:PKG=%li: packet rejected, %s, ero=0x%02x\n", __FUNCTION__, iter, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+                    printf("  ERROR:%s:PKG=%zi: packet rejected, %s, ero=0x%02x\n", __FUNCTION__, iter, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
                 }
                 return (int) (uint8Rd[1]);  // USBISS error code
             }
             /* check byte count */
             if ( uint8Chunk != uint8Rd[1] ) {
                 if ( 0 != self->uint8MsgLevel ) {
-                    printf("  ERROR:%s:PKG=%li: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, uint8Chunk, uint8Rd[1]);
+                    printf("  ERROR:%s:PKG=%zi: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, uint8Chunk, uint8Rd[1]);
                 }
                 return (int) (uint8Rd[1]);  // USBISS error code
             }
@@ -540,7 +540,7 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
     if ( 3 != usbiss_uart_write(self, uint8Wr, 3) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 3);  // convert to ascii
-            printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
+            printf("  ERROR:%s:PKG=%zi:OFS=0x%zx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
         }
         return -1;
     }
@@ -548,21 +548,21 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
     intRdLen = simple_uart_read(self->uart, uint8Rd, sizeof(uint8Rd));
     if ( 3 != intRdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG=%li:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, intRdLen, 3);
+            printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, intRdLen, 3);
         }
         return -1;
     }
     /* check response byte */
     if ( USBISS_CMD_ACK != uint8Rd[0] ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG=%li: packet rejected, %s, ero=0x%02x\n", __FUNCTION__, iter, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
+            printf("  ERROR:%s:PKG=%zi: packet rejected, %s, ero=0x%02x\n", __FUNCTION__, iter, usbiss_ero_str(uint8Rd[1]), uint8Rd[1]);
         }
         return (int) (uint8Rd[1]);  // USBISS error code
     }
     /* check byte count */
-    if ( 1!= uint8Rd[1] ) {
+    if ( 1 != uint8Rd[1] ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG=%li: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, 1, uint8Rd[1]);
+            printf("  ERROR:%s:PKG=%zi: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, 1, uint8Rd[1]);
         }
         return (int) (uint8Rd[1]);  // USBISS error code
     }
