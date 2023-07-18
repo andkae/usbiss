@@ -19,15 +19,12 @@
 
 /** Standard libs **/
 #include <errno.h>          // number of last error
-#include <fcntl.h>          // open
 #include <getopt.h>         // CLI parser
 #include <stdint.h>         // int8_t, ...
 #include <stdio.h>          // standard input/output
 #include <stdlib.h>
 #include <string.h>         // string manipulation
-#include <unistd.h>         // fwrite/fread
-#include <stddef.h>         // offsetof - offset of a structure member
-#include <math.h>           // round
+#include <unistd.h>         // fwrite/fread/getuid
 /** Custom Libs **/
 #include "simple_uart.h"    // cross platform UART driver
 #include "usbiss.h"         // USBISS driver
