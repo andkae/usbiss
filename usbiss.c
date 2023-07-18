@@ -55,29 +55,6 @@
 /** @} */   // FALL_THROUGH
 
 
-/**
- *  @defgroup MIN_MAX
- *
- *  @brief MIN/MAX
- *
- *  Calculates MIN/MAX of two numbers
- *
- *  @since  2023-07-07
- *  @see https://stackoverflow.com/questions/3437404/min-and-max-in-c
- */
- #define usbiss_max(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a > _b ? _a : _b; })
-
- #define usbiss_min(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a < _b ? _a : _b; })
-
-/** @} */   // MIN_MAX
-
-
 
 /**
  *  usbiss_uint8_to_str
@@ -612,8 +589,8 @@ char *usbiss_ero_str(uint8_t error)
  */
 int usbiss_list_uart( char *str, size_t len )
 {
-	
-	return 0;
+
+    return 0;
 }
 
 

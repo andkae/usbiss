@@ -48,24 +48,6 @@
 
 
 /**
- *  @defgroup MAX
- *
- *  @brief MAX
- *
- *  Calculates MAX of two numbers
- *
- *  @since  2023-07-14
- *  @see https://stackoverflow.com/questions/3437404/min-and-max-in-c
- */
- #define max(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a > _b ? _a : _b; })
-/** @} */   // MIN_MAX
-
-
-
-/**
  *  @brief print hexdump
  *
  *  dumps memory segment as ascii hex
@@ -256,7 +238,7 @@ static int process_cmd (char *str, uint8_t *adr, uint8_t **data, uint32_t *wrLen
         ptr = strtok(NULL, " ");
     }
     /* allocate memory according array dimensions */
-    *data = malloc(max(*wrLen, *rdLen));
+    *data = malloc(usbiss_max(*wrLen, *rdLen));
     if ( *wrLen > 0 ) {
         /* reset write counter */
         *wrLen = 0;
