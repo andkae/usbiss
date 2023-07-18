@@ -129,8 +129,16 @@ static int usbiss_human_to_mode(const char *str, uint8_t *val)
 
 
 /**
- *  usbiss_is_i2c_mode
- *    check if i2c mode is selected
+ *  @brief Is I2C
+ *
+ *  Check if USB-ISS has I2C mode
+ *
+ *  @param[in]      mode                USB-ISS mode
+ *  @return         int                 number of written bytes
+ *  @retval         0                   I2C mode
+ *  @retval         -1                  Non I2C mode
+ *  @since          July 18, 2023
+ *  @author         Andreas Kaeberlein
  */
 static int usbiss_is_i2c_mode( uint8_t mode )
 {
@@ -146,6 +154,39 @@ static int usbiss_is_i2c_mode( uint8_t mode )
         case USBISS_I2C_H_1000KHZ:  return 0;
     }
     return -1;
+}
+
+
+
+/**
+ *  @brief UART Write
+ *
+ *  Write to UART port
+ *
+ *  @param[in,out]  *self               common handle #t_usbiss
+ *  @param[in]      data                data array to write
+ *  @param[in]      len                 number of bytes to write
+ *  @return         uint32_t            number of written bytes
+ *  @since          July 18, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
+{
+    /** Variables **/
+    uint32_t    r = 0;
+
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* UART Write */
+    r = (uint32_t) simple_uart_write(self->uart, data, (int) len);
+    /* flush buffer */
+    if ( 0 != simple_uart_flush(self->uart) ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  WARN:%s: flush failed\n", __FUNCTION__);
+        }
+    }
+    /* function finish */
+    return r;
 }
 
 
@@ -178,7 +219,7 @@ static int usbiss_i2c_startbit( t_usbiss *self, uint8_t adr8 )
     uint8Wr[1] = USBISS_I2C_START;  // START-Bit
     uint8Wr[2] = (uint8_t) (USBISS_I2C_WRITE);  // only one address byte written
     uint8Wr[3] = adr8;              // i2c address + Direction (Read/Write)
-    if ( 4 != simple_uart_write(self->uart, uint8Wr, 4) ) { // request
+    if ( 4 != usbiss_uart_write(self, uint8Wr, 4) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 4); // convert to ascii
             printf("  ERROR:%s:REQ: %s\n", __FUNCTION__, charBuf);
@@ -236,7 +277,7 @@ static int usbiss_i2c_restartbit( t_usbiss *self, uint8_t adr8 )
     uint8Wr[1] = USBISS_I2C_RESTART;    // RESTART-BIT
     uint8Wr[2] = (uint8_t) (USBISS_I2C_WRITE);  // only one address byte written
     uint8Wr[3] = adr8;              // i2c address + Direction (Read/Write)
-    if ( 4 != simple_uart_write(self->uart, uint8Wr, 4) ) { // request
+    if ( 4 != usbiss_uart_write(self, uint8Wr, 4) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 4); // convert to ascii
             printf("  ERROR:%s:REQ: %s\n", __FUNCTION__, charBuf);
@@ -290,7 +331,7 @@ static int usbiss_i2c_stopbit( t_usbiss *self )
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
     uint8Wr[0] = USBISS_I2C_DIRECT; // USBISS direct mode
     uint8Wr[1] = USBISS_I2C_STOP;   // STOP-Bit
-    if ( 2 != simple_uart_write(self->uart, uint8Wr, 2) ) { // request
+    if ( 2 != usbiss_uart_write(self, uint8Wr, 2) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 2); // convert to ascii
             printf("  ERROR:%s:REQ: %s\n", __FUNCTION__, charBuf);
@@ -366,7 +407,7 @@ static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len )
         uint8Wr[1] = (uint8_t) (USBISS_I2C_WRITE + uint8Chunk - 1);
         memcpy(uint8Wr+2, data+dataOfs, uint8Chunk);
         /* request i2c packet transfer */
-        if ( (uint8Chunk + 2) != simple_uart_write(self->uart, uint8Wr, uint8Chunk + 2) ) { // request
+        if ( ((uint32_t) (uint8Chunk + 2)) != usbiss_uart_write(self, uint8Wr, (uint32_t) (uint8Chunk + 2)) ) { // request
             if ( 0 != self->uint8MsgLevel ) {
                 usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) (uint8Chunk + 2));   // convert to ascii
                 printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
@@ -449,7 +490,7 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
             uint8Wr[0] = USBISS_I2C_DIRECT; // USBISS direct mode
             uint8Wr[1] = (uint8_t) (USBISS_I2C_READ + uint8Chunk - 1);
             /* request i2c packet transfer */
-            if ( 2 != simple_uart_write(self->uart, uint8Wr, 2) ) { // request
+            if ( 2 != usbiss_uart_write(self, uint8Wr, 2) ) {   // request
                 if ( 0 != self->uint8MsgLevel ) {
                     usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 2);  // convert to ascii
                     printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
@@ -496,7 +537,7 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
     uint8Wr[1] = USBISS_I2C_NCK;    // read with NCK
     uint8Wr[2] = USBISS_I2C_READ;   // read one byte
     /* issues transfer */
-    if ( 3 != simple_uart_write(self->uart, uint8Wr, 3) ) { // request
+    if ( 3 != usbiss_uart_write(self, uint8Wr, 3) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 3);  // convert to ascii
             printf("  ERROR:%s:PKG=%li:OFS=0x%lx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
@@ -680,7 +721,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
     /* check module id */
     uint8Wr[0] = USBISS_CMD;
     uint8Wr[1] = USBISS_ISS_VERSION;
-    if ( 2 != simple_uart_write(self->uart, uint8Wr, 2) ) { // request
+    if ( 2 != usbiss_uart_write(self, uint8Wr, 2) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 2); // convert to ascii
             printf("  ERROR:%s: REQ: %s\n", __FUNCTION__, charBuf);
@@ -708,7 +749,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
     /* Get Serial number */
     uint8Wr[0] = USBISS_CMD;
     uint8Wr[1] = USBISS_GET_SER_NUM;
-    if ( 2 != simple_uart_write(self->uart, uint8Wr, 2) ) { // request
+    if ( 2 != usbiss_uart_write(self, uint8Wr, 2) ) {   // request
         if ( 0 != self->uint8MsgLevel ) {
             usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, 2); // convert to ascii
             printf("  ERROR:%s: REQ: %s\n", __FUNCTION__, charBuf);
@@ -776,7 +817,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
     uint8_t     uint8Mode;      // new USBISS mode as opcode
     uint8_t     uint8Wr[16];    // write buffer
     uint8_t     uint8Rd[16];    // read buffer
-    int         intWrLen;       // write packet length
+    uint8_t     uint8WrLen;     // write packet length
     int         intRdLen;
 
     /* Function Call Message */
@@ -805,7 +846,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
         uint8Wr[1] = USBISS_SET_ISS_MODE;
         uint8Wr[2] = uint8Mode;
         uint8Wr[3] = 0x04;  // IO_TYPE (see I/O mode above)
-        intWrLen = 4;
+        uint8WrLen = 4;
     /* unsupported Format */
     } else {
         if ( 0 != self->uint8MsgLevel ) {
@@ -814,11 +855,11 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
         return -1;
     }
     if ( 0 != self->uint8MsgLevel ) {
-        usbiss_uint8_to_asciihex( charBuf, sizeof(charBuf), uint8Wr, (uint32_t) intWrLen ); // convert to ascii hex
+        usbiss_uint8_to_asciihex( charBuf, sizeof(charBuf), uint8Wr, (uint32_t) uint8WrLen );   // convert to ascii hex
         printf("  INFO:%s:REQ: %s\n", __FUNCTION__, charBuf);
     }
     /* set USBISS */
-    if ( intWrLen != simple_uart_write(self->uart, uint8Wr, intWrLen) ) {   // request
+    if ( uint8WrLen != usbiss_uart_write(self, uint8Wr, (uint32_t) uint8WrLen) ) {  // request
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: unexpected number of byte written\n", __FUNCTION__);
         }
