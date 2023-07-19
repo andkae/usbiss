@@ -36,7 +36,15 @@ sudo ./bin/usbiss -m I2C_H_400KHz -c "0x50 w 0 0 0x01 0x02 0x03"
 
 Following output:
 ```bash
-
+[ INFO ]   USBISS started
+[ OKAY ]   USBISS connected
+             Baudrate : 115200
+             Firmware : 0x09
+             Serial   : 00060147
+             Mode     : I2C_H_400KHZ
+[ OKAY ]   Write 5 bytes to device 0x50
+             0:  00 00 01 02 03 
+[ OKAY ]   ended normally
 ```
 
 #### Read
@@ -48,6 +56,25 @@ sudo ./bin/usbiss -m I2C_H_400KHz -c "0x50 w 0 0 r 128"
 
 Following output:
 ```bash
+[ INFO ]   USBISS started
+[ OKAY ]   USBISS connected
+             Baudrate : 115200
+             Firmware : 0x09
+             Serial   : 00060147
+             Mode     : I2C_H_400KHZ
+[ OKAY ]   Write/Read interaction with device 0x50
+           Write 2 Bytes
+             0:  00 00 
+           Read 128 Bytes
+             00:  01 02 03 05 06 07 08 09  0a 0b 0c 0d 0e 0f 10 11 
+             10:  12 13 14 15 16 17 18 19  1a 1b 1c 1d 1e 1f 20 21 
+             20:  22 23 24 25 26 27 28 29  0a 0b 0c 0d 2e 2f 30 31 
+             30:  32 33 34 35 36 37 38 39  3a 3b 3c 3d 3e 3f 40 41 
+             40:  0a 0b 0c 0d 1b 71 a4 00  00 00 00 00 00 00 00 00 
+             50:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
+             60:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
+             70:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
+[ OKAY ]   ended normally
 
 ```
 
