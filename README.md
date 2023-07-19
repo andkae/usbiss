@@ -3,8 +3,7 @@
 # usbiss
 A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) for Linux and Windows.
 
-<br/>
-<center> <img src="./doc/readme/usb-iss.jpg" height="65%" width="65%" alt="Picture of USB-ISS adapter" title="USB-ISS adapter"/> </center>
+<center> <img src="./doc/readme/usb-iss.jpg" height="35%" width="35%" alt="Picture of USB-ISS adapter" title="USB-ISS adapter"/> </center>
 <br/>
 
 ## Releases
