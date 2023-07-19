@@ -16,7 +16,7 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 ### Arguments
 | Argument                  | Description                                                                                                                 | Remark                                                       |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| -p, --port=[UART]         | USB-ISS belonging _<UART>_ port                                                                                             | Windows: _COM1_ <br /> Linux _/dev/ttyACM0_                  |
+| -p, --port=[UART]         | USB-ISS belonging _<UART>_ port                                                                                             | Windows: _COM1_ <br /> Linux: _/dev/ttyACM0_                 |
 | -b, --baud=[115200]       | communication speed Host/USB-ISS                                                                                            | UART baud rate                                               |
 | -m, --mode=[I2C_S_100KHZ] | I2C transfer mode, use _usbiss -h_ for valid modes                                                                          | f.e. _I2C_H_400KHZ_                                          |
 | -c, --command={cmd}       | I2C access to perform <br /> write: _adr7_ w _b0_ _bn_ <br /> read: _adr7_ r _cnt_ <br /> write-read: _adr7_ w _bn_ r _cnt_ | _adr7_: I2C slave address <br /> _cnt_: number of read bytes |
