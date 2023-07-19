@@ -16,11 +16,11 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 ### Arguments
 | Argument                  | Description                                                                                                                 | Remark                                         |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| -p, --port=[UART]         | USB-ISS belonging _<UART>_ port                                                                                             | Defaults: _COM1_ Windows, _/dev/ttyACM0_ Linux |
+| -p, --port=[UART]         | USB-ISS belonging _<UART>_ port                                                                                             | Windows: _COM1_ <br /> Linux _/dev/ttyACM0_    |
 | -b, --baud=[115200]       | UART baud rate, communication speed USB-ISS/Host                                                                            |                                                |
 | -m, --mode=[I2C_S_100KHZ] | I2C transfer mode, use _usbiss -h_ for valid modes                                                                          | f.e. _I2C_H_400KHZ_                            |
 | -c, --command={cmd}       | I2C access to perform <br /> write: _adr7_ w _b0_ _bn_ <br /> read: _adr7_ r _cnt_ <br /> write-read: _adr7_ w _bn_ r _cnt_ |                                                |
-| -h, --help                | help                                                                                                                        | Defaults: _COM1_ Windows, _/dev/ttyACM0_ Linux |
+| -h, --help                | help                                                                                                                        |                                                |
 | --verbose                 | enable debug output                                                                                                         |                                                |
 | --brief                   | output only relevant USBISS responses                                                                                       | write: exit code only, read: read data only    |
 
