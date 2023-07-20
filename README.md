@@ -104,14 +104,32 @@ Set message level of driver.
 int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
 ```
 
-Open connection to USB-ISS. _port_
+Open connection to USB-ISS.
 
-| Arg                        | Description                                                                  |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| port=[COM1 | /dev/ttyACM0] | System path to USB-ISS belonging UART. Provide empty string _""_ for default |
-| port=[115200]              | Baud rate of UART connection. Provide _0_ for default                        |
+| Arg                         | Description                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| port=[COM1 \| /dev/ttyACM0] | System path to USB-ISS belonging UART. Provide empty string _""_ for default |
+| port=[115200]               | Baud rate of UART connection. Provide _0_ for default                        |
+
+### Close
+```
+int usbiss_close( t_usbiss *self );
+```
+
+Close connection to USB-ISS.
+
+### Mode
+```
+int usbiss_set_mode( t_usbiss *self, const char* mode );
+```
+
+Setup USB-ISS transfer mode.
+_Note: Currently only I2C modes supported._
 
 
+| Arg                         | Description                                                                                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| mode=[USBISS_I2C_S_100KHZ]  | I2C Standard: _USBISS_I2C_S_20KHZ_, _USBISS_I2C_S_50KHZ_, _USBISS_I2C_S_100KHZ_, _USBISS_I2C_S_400KHZ_ <br /> I2C Fast: _USBISS_I2C_H_100KHZ_, _USBISS_I2C_H_400KHZ_, _USBISS_I2C_H_1000KHZ_ |
 
 
 
