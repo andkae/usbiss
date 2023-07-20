@@ -284,9 +284,9 @@ int usbiss_close( t_usbiss *self );
 
 
 /**
- *  @brief open
+ *  @brief Transfer Mode
  *
- *  open connection to USBISS
+ *  set up USB-ISS transfer mode
  *
  *  @param[in,out]  self                common handle #t_usbiss
  *  @param[in]      mode                USBISS transfer mode
