@@ -45,7 +45,7 @@ Following output:
              Serial   : 00060147
              Mode     : I2C_H_400KHZ
 [ OKAY ]   Write 5 bytes to device 0x50
-             0:  00 00 01 02 03 
+             0:  00 00 01 02 03
 [ OKAY ]   ended normally
 ```
 
@@ -66,20 +66,50 @@ Following output:
              Mode     : I2C_H_400KHZ
 [ OKAY ]   Write/Read interaction with device 0x50
            Write 2 Bytes
-             0:  00 00 
+             0:  00 00
            Read 128 Bytes
-             00:  01 02 03 05 06 07 08 09  0a 0b 0c 0d 0e 0f 10 11 
-             10:  12 13 14 15 16 17 18 19  1a 1b 1c 1d 1e 1f 20 21 
-             20:  22 23 24 25 26 27 28 29  0a 0b 0c 0d 2e 2f 30 31 
-             30:  32 33 34 35 36 37 38 39  3a 3b 3c 3d 3e 3f 40 41 
-             40:  0a 0b 0c 0d 1b 71 a4 00  00 00 00 00 00 00 00 00 
-             50:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
-             60:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
-             70:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
+             00:  01 02 03 05 06 07 08 09  0a 0b 0c 0d 0e 0f 10 11
+             10:  12 13 14 15 16 17 18 19  1a 1b 1c 1d 1e 1f 20 21
+             20:  22 23 24 25 26 27 28 29  0a 0b 0c 0d 2e 2f 30 31
+             30:  32 33 34 35 36 37 38 39  3a 3b 3c 3d 3e 3f 40 41
+             40:  0a 0b 0c 0d 1b 71 a4 00  00 00 00 00 00 00 00 00
+             50:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+             60:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+             70:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
 [ OKAY ]   ended normally
 ```
 
 ## [API](./usbiss.h)
+
+### Init
+```
+int usbiss_init( t_usbiss *self );
+```
+
+Initialize USB-ISS handle.
+
+### Verbose
+```
+void usbiss_set_verbose( t_usbiss *self, uint8_t verbose );
+```
+
+Set message level of driver.
+
+| Arg     | Description                                                                            |
+| ------- | -------------------------------------------------------------------------------------- |
+| verbose | Advanced debug information <br /> 0: no debug output <br /> 1: debug output via printf |
+
+### Open
+```
+int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
+```
+
+Open connection to USB-ISS. _port_
+
+| Arg                        | Description                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| port=[COM1 | /dev/ttyACM0] | System path to USB-ISS belonging UART. Provide empty string _""_ for default |
+| port=[115200]              | Baud rate of UART connection. Provide _0_ for default                        |
 
 
 
