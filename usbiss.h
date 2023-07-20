@@ -87,7 +87,7 @@
  *
  *  @{
  */
-#define USBISS_I2C_CHUNK    (16)    /**< Maximum chunk size for on packet */
+#define USBISS_I2C_CHUNK    (16)    /**< Maximum chunk size for packet */
 #define USBISS_I2C_START    (0x01)  /**< send start sequence */
 #define USBISS_I2C_RESTART  (0x02)  /**< send restart sequence */
 #define USBISS_I2C_STOP     (0x03)  /**< send stop sequence */
