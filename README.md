@@ -6,6 +6,7 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 <center> <img src="./doc/readme/usb-iss.jpg" height="35%" width="35%" alt="Picture of USB-ISS adapter" title="USB-ISS adapter"/> </center>
 <br/>
 
+
 ## Releases
 | Version                                                                       | Date       | Source                                                                                                                  | Change log                         |
 | ----------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
@@ -79,17 +80,18 @@ Following output:
 [ OKAY ]   ended normally
 ```
 
+
 ## [API](./usbiss.h)
 
 ### Init
-```
+```c
 int usbiss_init( t_usbiss *self );
 ```
 
 Initialize USB-ISS handle.
 
 ### Verbose
-```
+```c
 void usbiss_set_verbose( t_usbiss *self, uint8_t verbose );
 ```
 
@@ -100,7 +102,7 @@ Set message level of driver.
 | verbose | Advanced debug information <br /> 0: no debug output <br /> 1: debug output via printf |
 
 ### Open
-```
+```c
 int usbiss_open( t_usbiss *self, char* port, uint32_t baud );
 ```
 
@@ -112,26 +114,64 @@ Open connection to USB-ISS.
 | port=[115200]               | Baud rate of UART connection. Provide _0_ for default                        |
 
 ### Close
-```
+```c
 int usbiss_close( t_usbiss *self );
 ```
 
 Close connection to USB-ISS.
 
 ### Mode
-```
+```c
 int usbiss_set_mode( t_usbiss *self, const char* mode );
 ```
 
 Setup USB-ISS transfer mode.
 _Note: Currently only I2C modes supported._
 
-
 | Arg                         | Description                                                                                                                                                                                  |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | mode=[USBISS_I2C_S_100KHZ]  | I2C Standard: _USBISS_I2C_S_20KHZ_, _USBISS_I2C_S_50KHZ_, _USBISS_I2C_S_100KHZ_, _USBISS_I2C_S_400KHZ_ <br /> I2C Fast: _USBISS_I2C_H_100KHZ_, _USBISS_I2C_H_400KHZ_, _USBISS_I2C_H_1000KHZ_ |
 
+### I2C-Write
+```c
+int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, size_t len );
+```
 
+Write arbitary number of bytes to I2C slave.
+
+| Arg  | Description                    |
+| ---- | ------------------------------ |
+| adr7 | I2C slave address (7Bit)       |
+| data | array with write data          |
+| len  | number of bytes in write array |
+
+### I2C-Read
+```c
+int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t len );
+```
+
+Read arbitary number of bytes from I2C slave.
+
+| Arg  | Description                        |
+| ---- | ---------------------------------- |
+| adr7 | I2C slave address (7Bit)           |
+| data | array with read data               |
+| len  | number of requested bytes for read |
+
+### I2C-Write-Read
+```c
+int usbiss_i2c_wr_rd( t_usbiss *self, uint8_t adr7, void* data, size_t wrLen, size_t rdLen );
+```
+
+Write arbitary number of bytes to I2C slave, sent repeated start and read arbitary number of bytes.
+Write and Read data takes place in the same _data_ buffer.
+
+| Arg   | Description              |
+| ----- | ------------------------ |
+| adr7  | I2C slave address (7Bit) |
+| data  | array with read data     |
+| wrLen | number of bytes to write |
+| rdLen | number of bytes for read |
 
 
 ## References
