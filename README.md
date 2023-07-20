@@ -30,7 +30,7 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 This example modifies the EEPROM [24C256](https://ww1.microchip.com/downloads/en/devicedoc/doc0670.pdf) memory content.
 
 #### Write
-Write to device _0x50_ address _0_ the data _0x01 0x02 0x03_. The Arg eaccepts arbitary write data length, but keep the page overoll in this case in mind.
+Write to device _0x50_ address _0_ the data _0x01 0x02 0x03_. The Arg accepts arbitary write data length, but keep the page overoll in this case in mind.
 
 ```bash
 sudo ./bin/usbiss -m I2C_H_400KHz -c "0x50 w 0 0 0x01 0x02 0x03"
