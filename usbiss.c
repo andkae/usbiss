@@ -159,6 +159,30 @@ static int usbiss_is_i2c_mode( uint8_t mode )
 
 
 /**
+ *  @brief Ceildivide
+ *
+ *  Divides two integers and rounds always up
+ *
+ *  @see https://stackoverflow.com/questions/921180/how-can-i-ensure-that-a-division-of-integers-is-always-rounded-up
+ *
+ *  @param[in]      dividend            dividend
+ *  @param[in]      divisor             divisor
+ *  @return         uint32_t            quotient, always round-up
+ *  @since          July 20, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static uint32_t usbiss_ceildivide( uint32_t dividend, uint32_t divisor )
+{
+    uint32_t q = dividend / divisor;
+
+    if ( 0 != (dividend % divisor) )
+        ++q;
+    return q;
+}
+
+
+
+/**
  *  @brief UART Write
  *
  *  Write to UART port
@@ -206,12 +230,19 @@ static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
 static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
 {
     /** Variables **/
-    uint32_t    r = 0;
+    uint32_t    uint32Tbit_us;      // transfer time per bit in us
+    uint32_t    uint32Tdata_us;     // transfer time for number of data bits
+    uint32_t    r = 0;              // number of recieved bytes
 
     /* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
     /* calc time out based on data bytes and baud rate */
-        // TODO
+    uint32Tbit_us = usbiss_ceildivide(1000000, self->uint32BaudRate);   // calc duration for on bit
+    uint32Tdata_us = (8 + 1 + 2) * len * uint32Tbit_us; // 8: byte, 1: startbit, 2: max 2 stopbits
+    if ( 0 != self->uint8MsgLevel ) {
+        printf("  INFO:%s:TIME: Tbit = %ius, TData(%iBit) = %ius\n", __FUNCTION__, uint32Tbit_us, (8 + 1 + 2) * len, uint32Tdata_us);
+    }
+    // 2*(usbiss_max(uint32Tdata_us, 1000) / 1000)
     /* UART Read */
     r = (uint32_t) simple_uart_read(self->uart, data, (int) len);
     /* function finish */
