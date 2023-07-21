@@ -83,6 +83,18 @@ Following output:
 
 ## [API](./usbiss.h)
 
+### List
+```c
+int usbiss_list_uart( char *str, size_t len );
+```
+
+List USB-ISS suitable UART ports.
+
+| Arg | Description                |
+| --- | -------------------------- |
+| str | Found UART ports on system |
+| len | max length of string       |
+
 ### Init
 ```c
 int usbiss_init( t_usbiss *self );
