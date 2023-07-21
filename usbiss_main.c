@@ -277,16 +277,12 @@ static int process_cmd (char *str, uint8_t *adr, uint8_t **data, uint32_t *wrLen
 void usbiss_term_help(const char path[])
 {
     /** Variables **/
-    char    **uartNames;
-    char    **uartDescriptions;
-    int     numUarts;
-
-    /* build string with UART ports */
-    numUarts = simple_uart_list(&uartNames, &uartDescriptions); // get UART ports from system
-    for (int i = 0; i < numUarts; i++) {
-        //printf("Port %d: %s: %s\n", i, uartNames[i], (uartDescriptions && uartDescriptions[i]) ? uartDescriptions[i] : "unknown");
-    }
-
+    char	uart[1024];
+	
+	/* acquire available UART ports */
+	if ( 0 == usbiss_list_uart(uart, sizeof(uart)) ) {
+		strcpy(uart, "*** no USB-ISS matching ports found ***");
+	}
     /* clear console */
     if (system("clear")) {};
     /* print help */
@@ -319,8 +315,9 @@ void usbiss_term_help(const char path[])
         "  0   OK\n"
         "  1   Error, check log for details\n"
         "\n"
-        "UART Ports:\n"
-        "\n"
+        "Ports:\n"
+        "  %s\n"
+		"\n"
         "Authors:\n"
         "  Andreas Kaeberlein   andreas.kaeberlein@siemens.com\n"
         "\n"
@@ -328,7 +325,8 @@ void usbiss_term_help(const char path[])
         "  https://github.com/andkae/usbiss\n"
         "\n",
         USBISS_TERM_VERSION,
-        path
+        path,
+		uart
     );
 }
 
