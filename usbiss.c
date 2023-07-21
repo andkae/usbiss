@@ -206,7 +206,8 @@ static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
 static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
 {
     /** Variables **/
-    uint32_t    r = 0;              // number of recieved bytes
+    uint32_t    r = 0;  // number of recieved bytes
+    int         i = 0;  // help variable for return code of uart
 
     /* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
@@ -216,7 +217,14 @@ static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
     }
     /* read until number of required bytes are captured */
     while ( r < len ) {
-        r = r + ((uint32_t) simple_uart_read(self->uart, data+r, (int) (len-r)));
+        i = simple_uart_read(self->uart, data+r, (int) (len-r));    // request number of bytes
+        if ( i < 0 ) {
+            if ( 0 != self->uint8MsgLevel ) {
+                printf("  ERROR:%s:READ: UART read failed ero=0x%x\n", __FUNCTION__, i);
+            }
+            return r;   // release number of captured bytes until error
+        }
+        r = r + ((uint32_t) i);
     }
     /* function finish */
     return r;
