@@ -159,30 +159,6 @@ static int usbiss_is_i2c_mode( uint8_t mode )
 
 
 /**
- *  @brief Ceildivide
- *
- *  Divides two integers and rounds always up
- *
- *  @see https://stackoverflow.com/questions/921180/how-can-i-ensure-that-a-division-of-integers-is-always-rounded-up
- *
- *  @param[in]      dividend            dividend
- *  @param[in]      divisor             divisor
- *  @return         uint32_t            quotient, always round-up
- *  @since          July 20, 2023
- *  @author         Andreas Kaeberlein
- */
-static uint32_t usbiss_ceildivide( uint32_t dividend, uint32_t divisor )
-{
-    uint32_t q = dividend / divisor;
-
-    if ( 0 != (dividend % divisor) )
-        ++q;
-    return q;
-}
-
-
-
-/**
  *  @brief UART Write
  *
  *  Write to UART port
@@ -230,21 +206,18 @@ static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
 static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
 {
     /** Variables **/
-    uint32_t    uint32Tbit_us;      // transfer time per bit in us
-    uint32_t    uint32Tdata_us;     // transfer time for number of data bits
     uint32_t    r = 0;              // number of recieved bytes
 
     /* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
-    /* calc time out based on data bytes and baud rate */
-    uint32Tbit_us = usbiss_ceildivide(1000000, self->uint32BaudRate);   // calc duration for on bit
-    uint32Tdata_us = (8 + 1 + 2) * len * uint32Tbit_us; // 8: byte, 1: startbit, 2: max 2 stopbits
-    if ( 0 != self->uint8MsgLevel ) {
-        printf("  INFO:%s:TIME: Tbit = %ius, TData(%iBit) = %ius\n", __FUNCTION__, uint32Tbit_us, (8 + 1 + 2) * len, uint32Tdata_us);
+    /* check for zero request */
+    if ( 0 == len ) {
+        return 0;
     }
-    // 2*(usbiss_max(uint32Tdata_us, 1000) / 1000)
-    /* UART Read */
-    r = (uint32_t) simple_uart_read(self->uart, data, (int) len);
+    /* read until number of required bytes are captured */
+    while ( r < len ) {
+        r = r + ((uint32_t) simple_uart_read(self->uart, data+r, (int) (len-r)));
+    }
     /* function finish */
     return r;
 }
@@ -290,7 +263,7 @@ static int usbiss_i2c_startbit( t_usbiss *self, uint8_t adr8 )
         usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 4);  // convert to ascii
         printf("  INFO:%s:START:REQ: %s\n", __FUNCTION__, charBuf);
     }
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
     if ( 2 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, uint32RdLen);
@@ -348,7 +321,7 @@ static int usbiss_i2c_restartbit( t_usbiss *self, uint8_t adr8 )
         usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 4);  // convert to ascii
         printf("  INFO:%s:START:REQ: %s\n", __FUNCTION__, charBuf);
     }
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
     if ( 2 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, uint32RdLen);
@@ -402,7 +375,7 @@ static int usbiss_i2c_stopbit( t_usbiss *self )
         usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Wr, (uint32_t) 4);  // convert to ascii
         printf("  INFO:%s:STOP:REQ: %s\n", __FUNCTION__, charBuf);
     }
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
     if ( 2 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, uint32RdLen);
@@ -480,7 +453,7 @@ static int usbiss_i2c_data_wr ( t_usbiss *self, void* data, size_t len )
             printf("  INFO:%s:PKG=%zi:OFS=0x%zx:REQ: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
         }
         /* check response */
-        uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+        uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
         if ( 2 != uint32RdLen ) {
             if ( 0 != self->uint8MsgLevel ) {
                 printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i bytes received\n", __FUNCTION__, iter, uint32RdLen);
@@ -558,7 +531,7 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
                 return -1;
             }
             /* get data from UART*/
-            uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+            uint32RdLen = usbiss_uart_read(self, uint8Rd, (uint32_t) (uint8Chunk + 2));
             if ( ((uint32_t) (uint8Chunk + 2)) != uint32RdLen ) {
                 if ( 0 != self->uint8MsgLevel ) {
                     printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, uint8Chunk + 2);
@@ -605,7 +578,7 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
         return -1;
     }
     /* get data from UART*/
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 3);
     if ( 3 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, 3);
@@ -788,7 +761,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
         }
         return -1;
     }
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 3);
     if ( 3 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, uint32RdLen);
@@ -816,7 +789,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
         }
         return -1;
     }
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 8);
     if ( 8 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, uint32RdLen);
@@ -925,7 +898,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
         }
         return -1;
     }
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, sizeof(uint8Rd));
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
     if ( 2 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s: Unexpected number of %i bytes received\n", __FUNCTION__, uint32RdLen);
