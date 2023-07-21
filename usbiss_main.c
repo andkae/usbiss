@@ -67,12 +67,12 @@ static void print_hexdump (char leadBlank[], void *mem, size_t size)
         return;
     }
     /* acquire number of digits for address */
-    snprintf(charBuf, sizeof(charBuf), "%lx", size-1);  // convert to ascii for address digits calc, -1: addresses start at zero
+    snprintf(charBuf, sizeof(charBuf), "%zx", size-1);  // convert to ascii for address digits calc, -1: addresses start at zero
     uint8NumAdrDigits = (uint8_t) strlen(charBuf);
     /* print to console */
     for ( size_t i = 0; i < size; i = (i + 16) ) {
         /* print address line */
-        printf("%s%0*lx:  ", leadBlank, uint8NumAdrDigits, i);
+        printf("%s%0*zx:  ", leadBlank, uint8NumAdrDigits, i);
         /* print hex values */
         for ( uint8_t j = 0; j < 16; j++ ) {
             /* out of memory */
