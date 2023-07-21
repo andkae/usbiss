@@ -221,6 +221,21 @@ char *usbiss_ero_str(uint8_t error);
 
 
 /**
+ *  @brief list UART ports
+ *
+ *  Lists system UART ports
+ *
+ *  @param[in,out]  str                 USB-ISS matching UART ports
+ *  @param[in]      len                 maximum string length
+ *  @return         int                 number of USB-ISS matching ports
+ *  @since          July 21, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_list_uart( char *str, size_t len );
+
+
+
+/**
  *  @brief init
  *
  *  initializes common data structure

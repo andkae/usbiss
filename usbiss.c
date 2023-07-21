@@ -671,8 +671,33 @@ char *usbiss_ero_str(uint8_t error)
  */
 int usbiss_list_uart( char *str, size_t len )
 {
+    /** Variables **/
+    char    **names;
+    char    **descriptions;
+    int     numUarts;
+#if defined(__linux__) || defined(__APPLE__)
+    const char* usbissTty[] = {
+        "ttyACM[0-9]*"
+    };
+    const int   numUsbissTty = 1;
+#else
+    const char* usbissTty[] = {
+        ""
+    };
+    const int   numUsbissTty = 0;
+#endif
 
-    return 0;
+    /* list UART ports and build */
+    numUarts = simple_uart_list(&names, &descriptions, numUsbissTty, (char**) &usbissTty); // get UART ports from system
+    str[0] = '\0';
+    for (int i = 0; i < numUarts; i++) {
+        snprintf(str+strlen(str), len-strlen(str), "%s, ", names[i]);
+    }
+    if ( 2 < strlen(str) ) {
+        str[strlen(str)-2] = '\0';  // cut ', '
+    }
+    /* finish */
+    return numUarts;
 }
 
 
