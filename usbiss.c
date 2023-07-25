@@ -674,30 +674,28 @@ int usbiss_list_uart( char *str, size_t len )
     /** Variables **/
     char    **names;
     char    **descriptions;
-    int     numUarts;
-#if defined(__linux__) || defined(__APPLE__)
-    const char* usbissTty[] = {
-        "ttyACM[0-9]*"
-    };
-    const int   numUsbissTty = 1;
-#else
-    const char* usbissTty[] = {
-        ""
-    };
-    const int   numUsbissTty = 0;
-#endif
+    int     numTTY;
+    int     numUsbIssTTY = 0;
 
     /* list UART ports and build */
-    numUarts = simple_uart_list(&names, &descriptions, numUsbissTty, (char**) &usbissTty); // get UART ports from system
+    numTTY = simple_uart_list(&names, &descriptions);   // get UART ports from system
     str[0] = '\0';
-    for (int i = 0; i < numUarts; i++) {
-        snprintf(str+strlen(str), len-strlen(str), "%s, ", names[i]);
+    for (int i = 0; i < numTTY; i++) {
+        #if defined(__linux__) || defined(__APPLE__)
+            if ( NULL != strstr(names[i], "ttyACM") ) {
+        #endif
+            /* make array to simple string */
+            snprintf(str+strlen(str), len-strlen(str), "%s, ", names[i]);
+            ++numUsbIssTTY;
+        #if defined(__linux__) || defined(__APPLE__)
+            }
+        #endif
     }
     if ( 2 < strlen(str) ) {
         str[strlen(str)-2] = '\0';  // cut ', '
     }
     /* finish */
-    return numUarts;
+    return numUsbIssTTY;
 }
 
 
