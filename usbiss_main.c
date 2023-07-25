@@ -277,12 +277,12 @@ static int process_cmd (char *str, uint8_t *adr, uint8_t **data, uint32_t *wrLen
 void usbiss_term_help(const char path[])
 {
     /** Variables **/
-    char	uart[1024];
-	
-	/* acquire available UART ports */
-	if ( 0 == usbiss_list_uart(uart, sizeof(uart)) ) {
-		strcpy(uart, "*** no USB-ISS matching ports found ***");
-	}
+    char    uart[1024];
+
+    /* acquire available UART ports */
+    if ( 0 == usbiss_list_uart(uart, sizeof(uart)) ) {
+        strcpy(uart, "*** no USB-ISS matching ports found ***");
+    }
     /* clear console */
     if (system("clear")) {};
     /* print help */
@@ -317,7 +317,7 @@ void usbiss_term_help(const char path[])
         "\n"
         "Ports:\n"
         "  %s\n"
-		"\n"
+        "\n"
         "Authors:\n"
         "  Andreas Kaeberlein   andreas.kaeberlein@siemens.com\n"
         "\n"
@@ -326,7 +326,7 @@ void usbiss_term_help(const char path[])
         "\n",
         USBISS_TERM_VERSION,
         path,
-		uart
+        uart
     );
 }
 
@@ -391,10 +391,10 @@ int main (int argc, char *argv[])
     }
 
     /* flag defaults */
-    uint32BaudRate = 0;     // use usbiss defaults
-    charPort[0] = '\0';     // use defaults
-    charMode[0] = '\0';     // no change
-    charPtrCmd = NULL;      // no command
+    uint32BaudRate = 0; // use usbiss defaults
+    charPort[0] = '\0'; // use defaults
+    charPtrCmd = NULL;  // no command
+    strncpy(charMode, "I2C_S_100KHZ", sizeof(charMode));
 
     /* Parse CLI */
     while (-1 != (opt = getopt_long(argc, argv, shortopt, longopt, &arg_index))) {
