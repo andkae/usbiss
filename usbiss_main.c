@@ -283,8 +283,6 @@ void usbiss_term_help(const char path[])
     if ( 0 == usbiss_list_uart(uart, sizeof(uart)) ) {
         strcpy(uart, "*** no USB-ISS matching ports found ***");
     }
-    /* clear console */
-    if (system("clear")) {};
     /* print help */
     printf(
         "\n"
