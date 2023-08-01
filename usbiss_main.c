@@ -109,6 +109,12 @@ static void sprint_hex (char *str, void *mem, size_t size)
     size_t  i;
     char    hex[4];
 
+    /* make empty */
+    str[0] = '\0';
+    /* check for non zero input */
+    if ( 0 == size ) {
+        return;
+    }
     /* convert to hex */
     for ( i = 0; i < size; i++ ) {
         snprintf(hex, sizeof(hex), "%02x ", ((uint8_t*) mem)[i]);
