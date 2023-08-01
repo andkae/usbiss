@@ -178,7 +178,7 @@ static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
     /* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
     /* UART Write */
-    r = (uint32_t) simple_uart_write(self->uart, data, (int) len);
+    r = (uint32_t) simple_uart_write(self->uart, data, (size_t) len);
     /* flush buffer */
     if ( 0 != simple_uart_flush(self->uart) ) {
         if ( 0 != self->uint8MsgLevel ) {
@@ -207,7 +207,7 @@ static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
 {
     /** Variables **/
     uint32_t    r = 0;  // number of recieved bytes
-    int         i = 0;  // help variable for return code of uart
+    ssize_t     i = 0;  // help variable for return code of uart
 
     /* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
@@ -217,10 +217,10 @@ static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
     }
     /* read until number of required bytes are captured */
     while ( r < len ) {
-        i = simple_uart_read(self->uart, data+r, (int) (len-r));    // request number of bytes
+        i = simple_uart_read(self->uart, data+r, (size_t) (len-r)); // request number of bytes
         if ( i < 0 ) {
             if ( 0 != self->uint8MsgLevel ) {
-                printf("  ERROR:%s:READ: UART read failed ero=0x%x\n", __FUNCTION__, i);
+                printf("  ERROR:%s:READ: UART read failed ero=0x%zx\n", __FUNCTION__, i);
             }
             return r;   // release number of captured bytes until error
         }
@@ -674,13 +674,13 @@ int usbiss_list_uart( char *str, size_t len )
     /** Variables **/
     char    **names;
     char    **descriptions;
-    int     numTTY;
+    ssize_t numTTY;
     int     numUsbIssTTY = 0;
 
     /* list UART ports and build */
     numTTY = simple_uart_list(&names, &descriptions);   // get UART ports from system
     str[0] = '\0';
-    for (int i = 0; i < numTTY; i++) {
+    for (ssize_t i = 0; i < numTTY; i++) {
         #if defined(__linux__) || defined(__APPLE__)
             if ( NULL != strstr(names[i], "ttyACM") ) {
         #endif
