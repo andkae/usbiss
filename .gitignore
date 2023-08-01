@@ -10,12 +10,6 @@
 #
 
 
-# Test
-/test/*
-!/test/*.c
-#
-
-
 # Executable
 /bin/**
 #
