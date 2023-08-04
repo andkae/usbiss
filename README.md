@@ -7,6 +7,13 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 <br/>
 
 
+## Features
+* CLI interface to read/write arbitrary number of bytes from I2C slave
+* Windows/Linux support
+* Prebuild Windows excutable for command line
+* Easy to use C-API for project integration
+
+
 ## Releases
 | Version                                                | Date       | Source                                                                                              | Change log                         |
 | ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
