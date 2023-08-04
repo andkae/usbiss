@@ -10,6 +10,8 @@
 
  @file          : usbiss_main.c
  @date          : 2023-06-28
+ @see           : https://github.com/andkae/usbiss
+ @see           : http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm
 
  @brief         : usbiss CLI
                   provides CLI interface to usbiss

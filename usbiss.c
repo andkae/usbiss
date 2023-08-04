@@ -10,6 +10,7 @@
 
  @file          : usbiss.c
  @date          : 2023-06-29
+ @see           : https://github.com/andkae/usbiss
  @see           : http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm
 
  @brief         : USB-ISS driver
