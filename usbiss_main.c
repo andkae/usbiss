@@ -38,7 +38,7 @@
  *  help constants for programm
  *  @{
  */
-#define USBISS_TERM_VERSION     "0.0.1"     /**< Programm version */
+#define USBISS_TERM_VERSION     "0.1.0"     /**< Programm version */
 #define MSG_LEVEL_BRIEF         0           /**< Brief Message level */
 #define MSG_LEVEL_NORM          1           /**< Normal Message level */
 #define MSG_LEVEL_VERB          2           /**< Verbose Message Level */
