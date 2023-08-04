@@ -49,6 +49,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: usbiss-${{github.ref_name}}
+          name: usbiss-win-${{github.ref_name}}
           path: .\bin\usbiss.exe
           retention-days: 30
