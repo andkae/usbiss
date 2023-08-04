@@ -8,10 +8,10 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 
 
 ## Releases
-| Version                                                | Date       | Source                                                                                                                  | Change log                         |
-| ------------------------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| latest                                                 |            | <a id="raw-url" href="">latest.zip</a> |                                    |
-| [v0.0.1](https://github.com/andkae/usbiss/tree/v0.0.1) | 2023-08-04 | <a id="raw-url" href="">v0.0.1.zip</a> | initial draft                      |
+| Version                                                | Date       | Source                                                                                              | Change log                         |
+| ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| latest                                                 |            | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/heads/main.zip">latest.zip</a>  |                                    |
+| [v0.0.1](https://github.com/andkae/usbiss/tree/v0.0.1) | 2023-08-04 | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/tags/v0.0.1.zip">v0.0.1.zip</a> | initial draft                      |
 
 
 ## [CLI](./usbiss_main.c)
