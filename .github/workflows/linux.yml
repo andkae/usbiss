@@ -33,8 +33,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - with:
-        submodules: recursive
+        with:
+          submodules: recursive
       - name: OS Version
         run: cat /etc/os-release
       - name: Build
