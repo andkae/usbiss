@@ -1,4 +1,4 @@
-
+[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml)
 
 # usbiss
 A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) for Linux and Windows.
@@ -8,10 +8,10 @@ A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk
 
 
 ## Releases
-| Version                                                                       | Date       | Source                                                                                                                  | Change log                         |
-| ----------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| latest                                                                        |            | <a id="raw-url" href="">latest.zip</a> |                                    |
-| [v0.0.1]() | tbd | <a id="raw-url" href="">v0.1.0.zip</a> | initial draft                      |
+| Version                                                | Date       | Source                                                                                                                  | Change log                         |
+| ------------------------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| latest                                                 |            | <a id="raw-url" href="">latest.zip</a> |                                    |
+| [v0.0.1](https://github.com/andkae/usbiss/tree/v0.0.1) | 2023-08-04 | <a id="raw-url" href="">v0.0.1.zip</a> | initial draft                      |
 
 
 ## [CLI](./usbiss_main.c)
