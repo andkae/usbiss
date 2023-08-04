@@ -32,9 +32,11 @@ jobs:
         os: [ubuntu-latest, ubuntu-22.04, ubuntu-20.04, ubuntu-18.04]
     runs-on: ${{ matrix.os }}
     uses: actions/checkout@v3
-    with:
-        submodules: recursive
+
     steps:
+      - uses: actions/checkout@v3
+      - with:
+        submodules: recursive
       - name: OS Version
         run: cat /etc/os-release
       - name: Build
