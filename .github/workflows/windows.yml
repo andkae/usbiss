@@ -44,7 +44,6 @@ jobs:
       - name: Compile
         shell: msys2 {0}
         run: |
-          pwd
           make
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
