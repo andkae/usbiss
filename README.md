@@ -130,7 +130,7 @@ Open connection to USB-ISS.
 | Arg                         | Description                                                                  |
 | --------------------------- | ---------------------------------------------------------------------------- |
 | port=[COM1 \| /dev/ttyACM0] | System path to USB-ISS belonging UART. Provide empty string _""_ for default |
-| port=[115200]               | Baud rate of UART connection. Provide _0_ for default                        |
+| baud=[115200]               | Baud rate of UART connection. Provide _0_ for default                        |
 
 ### Close
 ```c
