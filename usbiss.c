@@ -589,8 +589,8 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
                 if ( 0 != self->uint8MsgLevel ) {
                     printf("  ERROR:%s:PKG=%zi: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, uint8Chunk, uint8Rd[1]);
                 }
-                usbiss_uart_read(self, uint8Rd+2, (uint32_t) uint8Rd[1]);   // clean buffer
-                return -1;  // USBISS error code
+                usbiss_uart_free(self); // clean buffer
+                return -1;
             }
             /* UART data read: get payload with data */
             uint32RdLen = usbiss_uart_read(self, uint8Rd+2, (uint32_t) (uint8Chunk));
@@ -645,8 +645,8 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s:PKG=%zi: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, 1, uint8Rd[1]);
         }
-        usbiss_uart_read(self, uint8Rd+2, (uint32_t) uint8Rd[1]);   // clean buffer
-        return -1;  // USBISS error code
+        usbiss_uart_free(self); // clean buffer
+        return -1;
     }
     /* UART data read: get payload with data */
     uint32RdLen = usbiss_uart_read(self, uint8Rd+2, 1);
