@@ -539,18 +539,13 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
                 }
                 return -1;
             }
-            /* get data from UART*/
-            uint32RdLen = usbiss_uart_read(self, uint8Rd, (uint32_t) (uint8Chunk + 2));
-            if ( ((uint32_t) (uint8Chunk + 2)) != uint32RdLen ) {
+            /* UART data read: get status bytes */
+            uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
+            if ( 2 != uint32RdLen ) {
                 if ( 0 != self->uint8MsgLevel ) {
-                    printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, uint8Chunk + 2);
+                    printf("  ERROR:%s:PKG=%zi:RSP:STATUS: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, 2);
                 }
                 return -1;
-            }
-            /* user message */
-            if ( 0 != self->uint8MsgLevel ) {
-                usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Rd, (uint32_t) (uint8Chunk + 2));   // convert to ascii
-                printf("  INFO:%s:PKG=%zi:OFS=0x%zx:RSP: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
             }
             /* check response byte */
             if ( USBISS_CMD_ACK != uint8Rd[0] ) {
@@ -564,8 +559,23 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
                 if ( 0 != self->uint8MsgLevel ) {
                     printf("  ERROR:%s:PKG=%zi: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, uint8Chunk, uint8Rd[1]);
                 }
-                return (int) (uint8Rd[1]);  // USBISS error code
+                usbiss_uart_read(self, uint8Rd+2, (uint32_t) uint8Rd[1]);   // clean buffer
+                return -1;  // USBISS error code
             }
+            /* UART data read: get payload with data */
+            uint32RdLen = usbiss_uart_read(self, uint8Rd+2, (uint32_t) (uint8Chunk));
+            if ( ((uint32_t) uint8Chunk) != uint32RdLen ) {
+                if ( 0 != self->uint8MsgLevel ) {
+                    printf("  ERROR:%s:PKG=%zi:RSP:DATA: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, uint8Chunk);
+                }
+                return -1;
+            }
+            /* user message */
+            if ( 0 != self->uint8MsgLevel ) {
+                usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Rd, (uint32_t) (uint8Chunk + 2));   // convert to ascii
+                printf("  INFO:%s:PKG=%zi:OFS=0x%zx:RSP: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
+            }
+
             /* fill data in result variable */
             memcpy(data+dataOfs, uint8Rd+2, uint8Chunk);
             /* prepare next cycle */
@@ -586,11 +596,11 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
         }
         return -1;
     }
-    /* get data from UART*/
-    uint32RdLen = usbiss_uart_read(self, uint8Rd, 3);
-    if ( 3 != uint32RdLen ) {
+    /* UART data read: get status bytes */
+    uint32RdLen = usbiss_uart_read(self, uint8Rd, 2);
+    if ( 2 != uint32RdLen ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG=%zi:RSP: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, 3);
+            printf("  ERROR:%s:PKG=%zi:RSP:STATUS Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, 2);
         }
         return -1;
     }
@@ -606,7 +616,16 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
         if ( 0 != self->uint8MsgLevel ) {
             printf("  ERROR:%s:PKG=%zi: wrong data count recieved, exp=%i, is=%i\n", __FUNCTION__, iter, 1, uint8Rd[1]);
         }
-        return (int) (uint8Rd[1]);  // USBISS error code
+        usbiss_uart_read(self, uint8Rd+2, (uint32_t) uint8Rd[1]);   // clean buffer
+        return -1;  // USBISS error code
+    }
+    /* UART data read: get payload with data */
+    uint32RdLen = usbiss_uart_read(self, uint8Rd+2, 1);
+    if ( 1 != uint32RdLen ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  ERROR:%s:PKG=%zi:RSP:DATA: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, 1);
+        }
+        return -1;
     }
     /* fill data in result variable */
     memcpy(data+dataOfs, uint8Rd+2, 1);
