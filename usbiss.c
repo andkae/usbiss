@@ -605,7 +605,6 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
                 usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Rd, (uint32_t) (uint8Chunk + 2));   // convert to ascii
                 printf("  INFO:%s:PKG=%zi:OFS=0x%zx:RSP: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
             }
-
             /* fill data in result variable */
             memcpy(data+dataOfs, uint8Rd+2, uint8Chunk);
             /* prepare next cycle */
@@ -656,6 +655,11 @@ static int usbiss_i2c_data_rd ( t_usbiss *self, void* data, size_t len )
             printf("  ERROR:%s:PKG=%zi:RSP:DATA: Unexpected number of %i instead %i bytes received\n", __FUNCTION__, iter, uint32RdLen, 1);
         }
         return -1;
+    }
+    /* user message */
+    if ( 0 != self->uint8MsgLevel ) {
+        usbiss_uint8_to_asciihex(charBuf, sizeof(charBuf), uint8Rd, 3); // convert to ascii
+        printf("  INFO:%s:PKG=%zi:OFS=0x%zx:RSP: %s\n", __FUNCTION__, iter, dataOfs, charBuf);
     }
     /* fill data in result variable */
     memcpy(data+dataOfs, uint8Rd+2, 1);
