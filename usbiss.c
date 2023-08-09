@@ -135,7 +135,7 @@ static int usbiss_human_to_mode(const char *str, uint8_t *val)
  *  Check if USB-ISS has I2C mode
  *
  *  @param[in]      mode                USB-ISS mode
- *  @return         int                 number of written bytes
+ *  @return         int                 I2C mode active?
  *  @retval         0                   I2C mode
  *  @retval         -1                  Non I2C mode
  *  @since          July 18, 2023
@@ -229,6 +229,36 @@ static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
     }
     /* function finish */
     return r;
+}
+
+
+
+/**
+ *  @brief UART Freeing
+ *
+ *  Reads until UART recieve queue is empty
+ *
+ *  @param[in,out]  *self               common handle #t_usbiss
+ *  @return         uint32_t            number of read bytes from uart to free the adapter
+ *  @since          August 9, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static uint32_t usbiss_uart_free( t_usbiss *self )
+{
+    /** Variables **/
+    uint32_t    cnt;
+    uint8_t     dat[4];
+
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* fetch until no data */
+    cnt = 0;
+    while ( 0 != simple_uart_has_data(self->uart) ) {
+        usbiss_uart_read(self, dat, 1);
+        ++cnt;
+    }
+    /* function finish */
+    return cnt;
 }
 
 
@@ -802,6 +832,8 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
         }
         return -1;
     }
+    /* check if there are no pending bytes in UART */
+    usbiss_uart_free(self);
     /* check module id */
     uint8Wr[0] = USBISS_CMD;
     uint8Wr[1] = USBISS_ISS_VERSION;
