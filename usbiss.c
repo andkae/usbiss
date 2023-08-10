@@ -57,6 +57,111 @@
 
 
 
+
+/**
+ *  @brief UART Write
+ *
+ *  Write to UART port
+ *
+ *  @param[in,out]  *self               common handle #t_usbiss
+ *  @param[in]      data                data array to write
+ *  @param[in]      len                 number of bytes to write
+ *  @return         uint32_t            number of written bytes
+ *  @since          July 18, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
+{
+    /** Variables **/
+    uint32_t    r = 0;
+
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* UART Write */
+    r = (uint32_t) simple_uart_write(self->uart, data, (size_t) len);
+    /* flush buffer */
+    if ( 0 != simple_uart_flush(self->uart) ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  WARN:%s: flush failed\n", __FUNCTION__);
+        }
+    }
+    /* function finish */
+    return r;
+}
+
+
+
+/**
+ *  @brief UART read
+ *
+ *  Read from UART port
+ *
+ *  @param[in,out]  *self               common handle #t_usbiss
+ *  @param[in]      data                array with read data
+ *  @param[in]      len                 requested number of bytes
+ *  @return         uint32_t            number of read bytes
+ *  @since          July 20, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
+{
+    /** Variables **/
+    uint32_t    r = 0;  // number of recieved bytes
+    ssize_t     i = 0;  // help variable for return code of uart
+
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* check for zero request */
+    if ( 0 == len ) {
+        return 0;
+    }
+    /* read until number of required bytes are captured */
+    while ( r < len ) {
+        i = simple_uart_read(self->uart, data+r, (size_t) (len-r)); // request number of bytes
+        if ( i < 0 ) {
+            if ( 0 != self->uint8MsgLevel ) {
+                printf("  ERROR:%s:READ: UART read failed ero=0x%zx\n", __FUNCTION__, i);
+            }
+            return r;   // release number of captured bytes until error
+        }
+        r = r + ((uint32_t) i);
+    }
+    /* function finish */
+    return r;
+}
+
+
+
+/**
+ *  @brief Read data available
+ *
+ *  Outputs number of availbale read bytes on the UART
+ *
+ *  @param[in,out]  *self               common handle #t_usbiss
+ *  @return         uint32_t            number of available UART read bytes 
+ *  @since          August 10, 2023
+ *  @author         Andreas Kaeberlein
+ */
+static uint32_t usbiss_uart_read_avail( t_usbiss *self )
+{
+    /** Variables **/
+    int cnt;
+
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* acquire avail data count */
+    cnt = simple_uart_has_data(self->uart);
+    if ( cnt < 0 ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  ERROR:%s: Failed toacquire number of available bytes, ero=0x%x\n", __FUNCTION__, cnt);
+        }
+        return 0;
+    }
+    return (uint32_t) cnt;
+}
+
+
+
 /**
  *  usbiss_uint8_to_str
  *    convert to ascii hex
@@ -160,80 +265,6 @@ static int usbiss_is_i2c_mode( uint8_t mode )
 
 
 /**
- *  @brief UART Write
- *
- *  Write to UART port
- *
- *  @param[in,out]  *self               common handle #t_usbiss
- *  @param[in]      data                data array to write
- *  @param[in]      len                 number of bytes to write
- *  @return         uint32_t            number of written bytes
- *  @since          July 18, 2023
- *  @author         Andreas Kaeberlein
- */
-static uint32_t usbiss_uart_write( t_usbiss *self, void* data, uint32_t len )
-{
-    /** Variables **/
-    uint32_t    r = 0;
-
-    /* Function Call Message */
-    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
-    /* UART Write */
-    r = (uint32_t) simple_uart_write(self->uart, data, (size_t) len);
-    /* flush buffer */
-    if ( 0 != simple_uart_flush(self->uart) ) {
-        if ( 0 != self->uint8MsgLevel ) {
-            printf("  WARN:%s: flush failed\n", __FUNCTION__);
-        }
-    }
-    /* function finish */
-    return r;
-}
-
-
-
-/**
- *  @brief UART read
- *
- *  Read from UART port
- *
- *  @param[in,out]  *self               common handle #t_usbiss
- *  @param[in]      data                array with read data
- *  @param[in]      len                 requested number of bytes
- *  @return         uint32_t            number of read bytes
- *  @since          July 20, 2023
- *  @author         Andreas Kaeberlein
- */
-static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
-{
-    /** Variables **/
-    uint32_t    r = 0;  // number of recieved bytes
-    ssize_t     i = 0;  // help variable for return code of uart
-
-    /* Function Call Message */
-    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
-    /* check for zero request */
-    if ( 0 == len ) {
-        return 0;
-    }
-    /* read until number of required bytes are captured */
-    while ( r < len ) {
-        i = simple_uart_read(self->uart, data+r, (size_t) (len-r)); // request number of bytes
-        if ( i < 0 ) {
-            if ( 0 != self->uint8MsgLevel ) {
-                printf("  ERROR:%s:READ: UART read failed ero=0x%zx\n", __FUNCTION__, i);
-            }
-            return r;   // release number of captured bytes until error
-        }
-        r = r + ((uint32_t) i);
-    }
-    /* function finish */
-    return r;
-}
-
-
-
-/**
  *  @brief UART Freeing
  *
  *  Reads until UART recieve queue is empty
@@ -253,7 +284,7 @@ static uint32_t usbiss_uart_free( t_usbiss *self )
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
     /* fetch until no data */
     cnt = 0;
-    while ( 0 != simple_uart_has_data(self->uart) ) {
+    while ( 0 != usbiss_uart_read_avail(self) ) {
         usbiss_uart_read(self, dat, 1);
         ++cnt;
     }
