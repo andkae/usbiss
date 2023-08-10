@@ -153,7 +153,7 @@ static uint32_t usbiss_uart_read_avail( t_usbiss *self )
     cnt = simple_uart_has_data(self->uart);
     if ( cnt < 0 ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s: Failed toacquire number of available bytes, ero=0x%x\n", __FUNCTION__, cnt);
+            printf("  ERROR:%s: Failed to acquire number of available read bytes, ero=0x%x\n", __FUNCTION__, cnt);
         }
         return 0;
     }
