@@ -1,5 +1,27 @@
 [![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml)
 
+- [usbiss](#usbiss)
+  * [Features](#features)
+  * [Releases](#releases)
+  * [[CLI](./usbiss_main.c)](#-cli---usbiss-mainc-)
+    + [Arguments](#arguments)
+    + [Run](#run)
+      - [Write](#write)
+      - [Read](#read)
+  * [[API](./usbiss.h)](#-api---usbissh-)
+    + [List](#list)
+    + [Init](#init)
+    + [Verbose](#verbose)
+    + [Open](#open)
+    + [Close](#close)
+    + [Mode](#mode)
+    + [I2C-Write](#i2c-write)
+    + [I2C-Read](#i2c-read)
+    + [I2C-Write-Read](#i2c-write-read)
+  * [Acknowledgment](#acknowledgment)
+  * [References](#references)
+
+
 # usbiss
 A API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) for Linux and Windows.
 
