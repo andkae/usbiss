@@ -193,6 +193,12 @@ Write and Read data takes place in the same _data_ buffer.
 | rdLen | number of bytes for read |
 
 
+## Acknowledgment
+
+Special thanks to [AndreRenaud](https://github.com/AndreRenaud) for providing such nice modules. [simple_uart](https://github.com/AndreRenaud/simple_uart) allows
+us to run [USBISS](https://github.com/andkae/usbiss) with Linux and Windows.
+
+
 ## References
   * [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm)
   * [Simple UART](https://github.com/AndreRenaud/simple_uart)
