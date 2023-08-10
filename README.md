@@ -18,7 +18,7 @@
     + [I2C-Write](#i2c-write)
     + [I2C-Read](#i2c-read)
     + [I2C-Write-Read](#i2c-write-read)
-  * [Acknowledgment](#acknowledgment)
+  * [Acknowledgement](#acknowledgement)
   * [References](#references)
 
 
@@ -215,7 +215,7 @@ Write and Read data takes place in the same _data_ buffer.
 | rdLen | number of bytes for read |
 
 
-## Acknowledgment
+## Acknowledgement
 
 Special thanks to [AndreRenaud](https://github.com/AndreRenaud) for providing such nice modules. [simple_uart](https://github.com/AndreRenaud/simple_uart) allows
 us to run [USBISS](https://github.com/andkae/usbiss) with Linux and Windows.
