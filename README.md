@@ -23,7 +23,7 @@
 
 
 # usbiss
-A USB-ISS C driver API and CLI tool to interface the [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) in Linux and Windows.
+A [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) C driver API and CLI tool for Linux and Windows.
 
 <center> <img src="./doc/readme/usb-iss.jpg" height="35%" width="35%" alt="Picture of USB-ISS adapter" title="USB-ISS adapter"/> </center>
 <br/>
