@@ -1,4 +1,4 @@
-[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml)
+[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml) [![doxygen](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml) 
 
 - [usbiss](#usbiss)
   * [Features](#features)
@@ -18,7 +18,7 @@
     + [I2C-Write](#i2c-write)
     + [I2C-Read](#i2c-read)
     + [I2C-Write-Read](#i2c-write-read)
-  * [Acknowledgement](#acknowledgement)
+  * [Acknowledgment](#acknowledgment)
   * [References](#references)
 
 
@@ -178,7 +178,7 @@ _Note: Currently only I2C modes supported._
 int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, size_t len );
 ```
 
-Write arbitary number of bytes to I2C slave.
+Write arbitrary number of bytes to I2C slave.
 
 | Arg  | Description                    |
 | ---- | ------------------------------ |
@@ -191,34 +191,34 @@ Write arbitary number of bytes to I2C slave.
 int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t len );
 ```
 
-Read arbitary number of bytes from I2C slave.
+Read arbitrary number of bytes from I2C slave.
 
-| Arg  | Description                        |
-| ---- | ---------------------------------- |
-| adr7 | I2C slave address (7Bit)           |
-| data | array with read data               |
-| len  | number of requested bytes for read |
+| Arg  | Description                    |
+| ---- | ------------------------------ |
+| adr7 | I2C slave address (7Bit)       |
+| data | array with read data           |
+| len  | number of requested read bytes |
 
 ### I2C-Write-Read
 ```c
 int usbiss_i2c_wr_rd( t_usbiss *self, uint8_t adr7, void* data, size_t wrLen, size_t rdLen );
 ```
 
-Write arbitary number of bytes to I2C slave, sent repeated start and read arbitary number of bytes.
+Write arbitrary number of bytes to I2C slave, sent repeated start and read arbitrary number of bytes.
 Write and Read data takes place in the same _data_ buffer.
 
-| Arg   | Description              |
-| ----- | ------------------------ |
-| adr7  | I2C slave address (7Bit) |
-| data  | array with read data     |
-| wrLen | number of bytes to write |
-| rdLen | number of bytes for read |
+| Arg   | Description                |
+| ----- | -------------------------- |
+| adr7  | I2C slave address (7Bit)   |
+| data  | array with write/read data |
+| wrLen | number of bytes to write   |
+| rdLen | number of bytes for read   |
 
 
-## Acknowledgement
+## Acknowledgment
 
-Special thanks to [AndreRenaud](https://github.com/AndreRenaud) for providing such nice modules. [simple_uart](https://github.com/AndreRenaud/simple_uart) allows
-us to run [USBISS](https://github.com/andkae/usbiss) with Linux and Windows.
+Special thanks to [AndreRenaud](https://github.com/AndreRenaud) for providing [simple_uart](https://github.com/AndreRenaud/simple_uart). This
+nice module allows us to run [USBISS](https://github.com/andkae/usbiss) for Linux and Windows.
 
 
 ## References
