@@ -138,7 +138,7 @@ static uint32_t usbiss_uart_read( t_usbiss *self, void* data, uint32_t len )
  *  Outputs number of availbale read bytes on the UART
  *
  *  @param[in,out]  *self               common handle #t_usbiss
- *  @return         uint32_t            number of available UART read bytes 
+ *  @return         uint32_t            number of available UART read bytes
  *  @since          August 10, 2023
  *  @author         Andreas Kaeberlein
  */
@@ -758,12 +758,11 @@ int usbiss_list_uart( char *str, size_t len )
 {
     /** Variables **/
     char    **names;
-    char    **descriptions;
     ssize_t numTTY;
     int     numUsbIssTTY = 0;
 
     /* list UART ports and build */
-    numTTY = simple_uart_list(&names, &descriptions);   // get UART ports from system
+    numTTY = simple_uart_list(&names);  // get UART ports from system
     str[0] = '\0';
     for (ssize_t i = 0; i < numTTY; i++) {
         #if defined(__linux__) || defined(__APPLE__)
