@@ -1,4 +1,4 @@
-[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml) [![doxygen](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml) 
+[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml) [![doxygen](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml)
 
 - [usbiss](#usbiss)
   * [Features](#features)
@@ -37,10 +37,11 @@ A [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) C driver AP
 
 
 ## Releases
-| Version                                                | Date       | Source                                                                                              | Change log                         |
-| ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| latest                                                 |            | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/heads/main.zip">latest.zip</a>  |                                    |
-| [v0.0.1](https://github.com/andkae/usbiss/tree/v0.0.1) | 2023-08-04 | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/tags/v0.0.1.zip">v0.0.1.zip</a> | initial draft                      |
+| Version                                                | Date       | Source                                                                                              | Change log                                                                                                                                         |
+| ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| latest                                                 |            | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/heads/main.zip">latest.zip</a>  |                                                                                                                                                    |
+| [v0.1.0](https://github.com/andkae/usbiss/tree/v0.1.0) | 2023-08-27 | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/tags/v0.1.0.zip">v0.1.0.zip</a> | fix [Simple UART](https://github.com/AndreRenaud/simple_uart) compile warnings <br /> check USB-ISS status bytes before read <br /> add Doxygen CI |
+| [v0.0.1](https://github.com/andkae/usbiss/tree/v0.0.1) | 2023-08-04 | <a id="raw-url" href="https://github.com/andkae/usbiss/archive/refs/tags/v0.0.1.zip">v0.0.1.zip</a> | initial draft                                                                                                                                      |
 
 
 ## [CLI](./usbiss_main.c)
