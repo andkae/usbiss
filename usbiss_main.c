@@ -288,7 +288,7 @@ void usbiss_term_help(const char path[])
     char    uart[1024];
 
     /* acquire available UART ports */
-    if ( 0 == usbiss_list_uart(uart, sizeof(uart)) ) {
+    if ( 0 == usbiss_list_uart(uart, sizeof(uart), ", ") ) {
         strcpy(uart, "*** no USB-ISS matching ports found ***");
     }
     /* print help */

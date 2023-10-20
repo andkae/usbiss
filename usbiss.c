@@ -754,7 +754,7 @@ char *usbiss_ero_str(uint8_t error)
  *  usbiss_list_uart
  *    List suitable port for USB-ISS connection
  */
-int usbiss_list_uart( char *str, size_t len )
+int usbiss_list_uart( char *str, size_t len, const char sep[] )
 {
     /** Variables **/
     char    **names;
@@ -769,14 +769,14 @@ int usbiss_list_uart( char *str, size_t len )
             if ( NULL != strstr(names[i], "ttyACM") ) {
         #endif
             /* make array to simple string */
-            snprintf(str+strlen(str), len-strlen(str), "%s, ", names[i]);
+            snprintf(str+strlen(str), len-strlen(str), "%s%s", names[i], sep);
             ++numUsbIssTTY;
         #if defined(__linux__) || defined(__APPLE__)
             }
         #endif
     }
-    if ( 2 < strlen(str) ) {
-        str[strlen(str)-2] = '\0';  // cut ', '
+    if ( strlen(sep) < strlen(str) ) {
+        str[strlen(str)-strlen(sep)] = '\0';    // cut separator
     }
     /* finish */
     return numUsbIssTTY;
