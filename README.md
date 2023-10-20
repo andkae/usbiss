@@ -5,6 +5,7 @@
   * [Releases](#releases)
   * [CLI](#cli)
     + [Arguments](#arguments)
+    + [Test](#test)
     + [Run](#run)
       - [Write](#write)
       - [Read](#read)
