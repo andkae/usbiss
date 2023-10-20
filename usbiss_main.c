@@ -304,7 +304,7 @@ void usbiss_term_help(const char path[])
         "  -p, --port=[<UART>]         USB-ISS belonging <UART> port\n"
         "            =[COM1]             Windows default\n"
         "            =[/dev/ttyACM0]     Linux default\n"
-        "  -b, --baud=[115200]         UART baud rate\n"
+        "  -b, --baud=[%06d]         UART baud rate\n"
         "  -m, --mode=[I2C_S_100KHZ]   I2C transfer mode\n"
         "                                Standard [I2C_S_20KHZ  | I2C_S_50KHZ  | I2C_S_100KHZ | I2C_S_400KHZ]\n"
         "                                Fast     [I2C_H_100KHZ | I2C_H_400KHZ | I2C_H_1000KHZ]\n"
@@ -319,7 +319,7 @@ void usbiss_term_help(const char path[])
         "\n"
         "Return Value:\n"
         "  0   OK\n"
-        "  1   Error, check log for details\n"
+        "  1   Error, use option '--verbose' for details\n"
         "\n"
         "Ports:\n"
         "  %s\n"
@@ -332,6 +332,7 @@ void usbiss_term_help(const char path[])
         "\n",
         USBISS_TERM_VERSION,
         path,
+        USBISS_UART_BAUD_RATE,
         uart
     );
 }
