@@ -375,7 +375,7 @@ int main (int argc, char *argv[])
         {"mode",        required_argument,  0,  'm'},
         {"command",     required_argument,  0,  'c'},
         {"version",     no_argument,        0,  'v'},
-        {"list",        no_argument,        0,  'v'},
+        {"list",        no_argument,        0,  'l'},
         {"help",        no_argument,        0,  'h'},
         /* Protection */
         {0,             0,                  0,  0 }     // NULL
