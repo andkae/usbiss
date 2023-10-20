@@ -33,7 +33,7 @@ A [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) C driver AP
 ## Features
 * CLI interface to read/write arbitrary number of bytes from I2C slave
 * Windows/Linux support
-* [Prebuild](https://github.com/andkae/usbiss/releases) Windows excutable for command line
+* [Prebuild](https://github.com/andkae/usbiss/releases) Windows executable for command line
 * Easy to use C-API for project integration
 
 
