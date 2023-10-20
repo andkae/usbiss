@@ -55,8 +55,25 @@ A [USB-ISS](http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm) C driver AP
 | -c, --command={cmd}       | I2C access to perform <br /> write: _adr7_ w _b0_ _bn_ <br /> read: _adr7_ r _cnt_ <br /> write-read: _adr7_ w _bn_ r _cnt_ | _adr7_: I2C slave address <br /> _bn_: write byte value <br />_cnt_: number of read bytes |
 | -l, --list                | list USB-ISS suitable ports                                                                                                 |                                                                                           |
 | -h, --help                | help                                                                                                                        |                                                                                           |
+| --test                    | Checks connection between PC and USB-ISS                                                                                    |                                                                                           |
 | --verbose                 | enable debug output                                                                                                         |                                                                                           |
 | --brief                   | output only relevant USBISS responses                                                                                       | write: exit code only, read: read data only                                               |
+
+### Test
+Checks the connection between PC and USB-ISS:
+```bash
+sudo ./bin/usbiss --test
+```
+
+Following output:
+```bash
+[ INFO ]   USBISS started
+[ OKAY ]   USBISS connected
+             Baudrate : 230400
+             Firmware : 0x09
+             Serial   : 00060147
+[ OKAY ]   ended normally
+```
 
 ### Run
 This example modifies the EEPROM [24C256](https://ww1.microchip.com/downloads/en/devicedoc/doc0670.pdf) memory content.
@@ -72,7 +89,7 @@ Following output:
 ```bash
 [ INFO ]   USBISS started
 [ OKAY ]   USBISS connected
-             Baudrate : 115200
+             Baudrate : 230400
              Firmware : 0x09
              Serial   : 00060147
              Mode     : I2C_H_400KHZ
@@ -92,7 +109,7 @@ Following output:
 ```bash
 [ INFO ]   USBISS started
 [ OKAY ]   USBISS connected
-             Baudrate : 115200
+             Baudrate : 230400
              Firmware : 0x09
              Serial   : 00060147
              Mode     : I2C_H_400KHZ
