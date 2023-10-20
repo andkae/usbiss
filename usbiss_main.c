@@ -314,6 +314,7 @@ void usbiss_term_help(const char path[])
         "                                <adr7> w <bn> r <cnt> : I2C write access followed by repeated start with read access\n"
         "  -h, --help                  Help\n"
         "  -v, --version               Version\n"
+        "  -l, --list                  List USBISS suitable UART ports\n"
         "      --verbose               Advanced output\n"
         "      --brief                 Only mandatory output\n"
         "\n"
@@ -348,8 +349,8 @@ int main (int argc, char *argv[])
     t_usbiss                usbiss;                         // usbiss handle
     uint8_t                 uint8MsgLevel = MSG_LEVEL_NORM; // message level
     uint32_t                uint32BaudRate;                 // CLI: baud rate
-    char                    charPort[128];                  // CLI: port
-    char                    charMode[128];                  // CLI: change mode
+    char                    charPort[256];                  // CLI: port
+    char                    charMode[32];                   // CLI: change mode
     char*                   charPtrCmd;                     // CLI: operation command
     char*                   charPtrBuf;                     // buffer help variable
     uint8_t                 uint8I2cAdr = __UINT8_MAX__;    // i2c address
@@ -372,11 +373,12 @@ int main (int argc, char *argv[])
         {"mode",        required_argument,  0,  'm'},
         {"command",     required_argument,  0,  'c'},
         {"version",     no_argument,        0,  'v'},
+        {"list",        no_argument,        0,  'v'},
         {"help",        no_argument,        0,  'h'},
         /* Protection */
         {0,             0,                  0,  0 }     // NULL
     };
-    static const char shortopt[] = "p:b:m:c:vh";
+    static const char shortopt[] = "p:b:m:c:vlh";
 
 
 
@@ -459,6 +461,15 @@ int main (int argc, char *argv[])
             /* Print version to console */
             case 'v':
                 printf("V%s\n", USBISS_TERM_VERSION);
+                uint8MsgLevel = MSG_LEVEL_BRIEF;    // avoid normal end message
+                goto GD_END_L0;
+                break;
+
+            /* Print list of USB-ISS uart ports to console console */
+            case 'l':
+                if ( 0 != usbiss_list_uart(charPort, sizeof(charPort), " ") ) {
+                    printf("%s\n", charPort);
+                }
                 uint8MsgLevel = MSG_LEVEL_BRIEF;    // avoid normal end message
                 goto GD_END_L0;
                 break;
