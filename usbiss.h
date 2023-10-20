@@ -34,6 +34,7 @@
 #define USBISS_UART_PATH_WIN    "COM1"          /**< default path on Windows platform */
 #define USBISS_UART_BAUD_RATE   115200          /**< default baudrate */
 #define USBISS_ID               0x07            /**< module ID */
+#define USBISS_FW_MIN           (8)             /**< minimal USB-ISS firmware version for proper operation */
 /** @} */   // USBISS_MISC
 
 

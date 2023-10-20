@@ -850,6 +850,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
             case 38400: break;
             case 57600: break;
             case 115200: break;
+            case 230400: break;
             default:
                 if ( 0 != self->uint8MsgLevel ) {
                     printf("  ERROR:%s: Unsupported baudrate %i.\n", __FUNCTION__, baud);
@@ -894,8 +895,15 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
         }
         return -1;
     }
-    self->uint8Fw = uint8Rd[1];
-    self->uint8Mode = uint8Rd[2];
+    self->uint8Fw = uint8Rd[1];     // USB-ISS firmware revision
+    self->uint8Mode = uint8Rd[2];   // current transfer mode
+    /* check for proper firmware revision, ISC_DIRECT is needed */
+    if ( USBISS_FW_MIN > self->uint8Fw ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  ERROR:%s: Installed USB-ISS FW=0x%02x, Required 0x%02x. Please do an FW update.\n", __FUNCTION__, self->uint8Fw, USBISS_FW_MIN);
+        }
+        return -1;
+    }
     /* Get Serial number */
     uint8Wr[0] = USBISS_CMD;
     uint8Wr[1] = USBISS_GET_SER_NUM;
