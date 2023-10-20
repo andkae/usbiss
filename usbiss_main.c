@@ -347,7 +347,8 @@ int main (int argc, char *argv[])
 {
     /** Variables **/
     t_usbiss                usbiss;                         // usbiss handle
-    uint8_t                 uint8MsgLevel = MSG_LEVEL_NORM; // message level
+    uint8_t                 uint8MsgLevel = MSG_LEVEL_NORM; // CLI: message level
+    uint8_t                 uint8TestUsbIss = 0;            // CLI: establish only a connection to USB-Iss and then close without any oter interaction on I2C
     uint32_t                uint32BaudRate;                 // CLI: baud rate
     char                    charPort[256];                  // CLI: port
     char                    charMode[32];                   // CLI: change mode
@@ -355,8 +356,8 @@ int main (int argc, char *argv[])
     char*                   charPtrBuf;                     // buffer help variable
     uint8_t                 uint8I2cAdr = __UINT8_MAX__;    // i2c address
     uint8_t*                uint8PtrWrRd = NULL;            // array with write/read data
-    uint32_t                uint32WrLen;                    // number of write elements in uint8PtrWrRd
-    uint32_t                uint32RdLen;                    // number of read elements in uint8PtrWr
+    uint32_t                uint32WrLen = 0;                // number of write elements in uint8PtrWrRd
+    uint32_t                uint32RdLen = 0;                // number of read elements in uint8PtrWr
     uint8_t*                uint8PtrHelp = NULL;            // help variable for wr-rd i2c function
 
 
@@ -367,6 +368,7 @@ int main (int argc, char *argv[])
         /* flags */
         { "brief",      no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_BRIEF },
         { "verbose",    no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_VERB },
+        { "test",       no_argument,    (int*) &uint8TestUsbIss, 1 },
         /* We distinguish them by their indices */
         {"port",        required_argument,  0,  'p'},
         {"baud",        required_argument,  0,  'b'},
@@ -500,13 +502,15 @@ int main (int argc, char *argv[])
     }
 
     /* check for proper command */
-    if ( NULL == charPtrCmd ) {
-        printf("[ FAIL ]   no transfer requested, use -c for proper args\n");
-        goto ERO_END_L0;
-    }
-    if ( 0 != process_cmd(charPtrCmd, &uint8I2cAdr, &uint8PtrWrRd, &uint32WrLen, &uint32RdLen) ) {
-        printf("[ FAIL ]   option '-c %s' unsupported, use --help for proper read/write command\n", charPtrCmd);
-        goto ERO_END_L0;
+    if ( 0 == uint8TestUsbIss ) {   // check only if no connection test
+        if ( NULL == charPtrCmd ) {
+            printf("[ FAIL ]   no transfer requested, use -c for proper args\n");
+            goto ERO_END_L0;
+        }
+        if ( 0 != process_cmd(charPtrCmd, &uint8I2cAdr, &uint8PtrWrRd, &uint32WrLen, &uint32RdLen) ) {
+            printf("[ FAIL ]   option '-c %s' unsupported, use --help for proper read/write command\n", charPtrCmd);
+            goto ERO_END_L0;
+        }
     }
 
     /* open UART Port */
@@ -523,6 +527,11 @@ int main (int argc, char *argv[])
         printf("             Baudrate : %i\n", usbiss.uint32BaudRate);
         printf("             Firmware : 0x%02x\n", usbiss.uint8Fw);
         printf("             Serial   : %s\n", usbiss.charSerial);
+    }
+
+    /* in case of test mode exit USB-ISS here */
+    if ( 0 != uint8TestUsbIss ) {
+        goto GD_END_L1;
     }
 
     /* set mode */
@@ -607,6 +616,10 @@ int main (int argc, char *argv[])
     /* mostly done, clean-up */
     free(uint8PtrWrRd);
     free(charPtrCmd);
+
+    /* Good End, close connection */
+    goto GD_END_L1; // avoid compile warning
+    GD_END_L1:
     if ( 0 != usbiss_close(&usbiss) ) {
         printf("[ FAIL ]   close USBISS connection\n");
         goto ERO_END_L0;
