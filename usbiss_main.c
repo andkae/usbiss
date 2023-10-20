@@ -499,6 +499,10 @@ int main (int argc, char *argv[])
     /* propagate message level */
     if ( MSG_LEVEL_VERB == uint8MsgLevel ) {
         usbiss_set_verbose(&usbiss, 1); // enable advanced output
+    } else {
+        if ( 0 != uint8TestUsbIss ) {   // force normal output level for test, needed under windows compile
+            uint8MsgLevel = MSG_LEVEL_NORM;
+        }
     }
 
     /* check for proper command */
