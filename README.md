@@ -134,7 +134,7 @@ Following output:
 
 ### List
 ```c
-int usbiss_list_uart( char *str, size_t len );
+int usbiss_list_uart( char *str, size_t len, const char sep[] );
 ```
 
 List USB-ISS suitable UART ports.
