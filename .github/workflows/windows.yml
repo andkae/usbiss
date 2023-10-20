@@ -36,6 +36,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+          fetch-depth: 0            # allow fetch tags, needed by 'git describe'
       - name: MSYS2
         uses: msys2/setup-msys2@v2
         with:
