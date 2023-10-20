@@ -47,6 +47,18 @@
 
 
 /**
+ *  @defgroup GIT
+ *  git related defintion
+ *  @{
+ */
+#ifndef USBISS_TERM_GITDESCR
+    #define USBISS_TERM_GITDESCR    "no-git-build"      /**< Compile Switch was not provided */
+#endif
+/** @} */   // GIT
+
+
+
+/**
  *  @brief print hexdump
  *
  *  dumps memory segment as ascii hex
@@ -462,7 +474,7 @@ int main (int argc, char *argv[])
 
             /* Print version to console */
             case 'v':
-                printf("V%s\n", USBISS_TERM_VERSION);
+                printf("%s\n", USBISS_TERM_GITDESCR);
                 uint8MsgLevel = MSG_LEVEL_BRIEF;    // avoid normal end message
                 goto GD_END_L0;
                 break;

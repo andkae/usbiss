@@ -33,6 +33,9 @@ ifeq ($(origin LFLAGS), undefined)
   LFLAGS = -Wall -Wextra -Wimplicit -I. -lm
 endif
 
+## Obtain the version by git describe
+GIT_DESCRIBE = $(shell git describe --always --tags)
+
 
 all: usbiss
 
@@ -41,7 +44,7 @@ usbiss: usbiss_main.o simple_uart.o usbiss.o
 	$(LINKER) ./obj/usbiss_main.o ./obj/simple_uart.o ./obj/usbiss.o $(LFLAGS) -o ./bin/usbiss
 
 usbiss_main.o: ./usbiss_main.c
-	$(CC) $(CFLAGS) ./usbiss_main.c -o ./obj/usbiss_main.o
+	$(CC) $(CFLAGS) -DUSBISS_TERM_GITDESCR=\"${GIT_DESCRIBE}\" ./usbiss_main.c -o ./obj/usbiss_main.o
 
 usbiss.o: ./usbiss.c
 	$(CC) $(CFLAGS) ./usbiss.c -o ./obj/usbiss.o
