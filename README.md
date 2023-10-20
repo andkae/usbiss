@@ -139,10 +139,15 @@ int usbiss_list_uart( char *str, size_t len );
 
 List USB-ISS suitable UART ports.
 
-| Arg | Description                |
-| --- | -------------------------- |
-| str | Found UART ports on system |
-| len | max length of string       |
+#### Arguments:
+| Arg | Description                    |
+| --- | ------------------------------ |
+| str | Found UART ports on system     |
+| len | max length of string           |
+| sep | separator between listes ports |
+
+#### Return:
+Number of found UART ports in system.
 
 ### Init
 ```c
