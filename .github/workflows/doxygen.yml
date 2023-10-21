@@ -46,6 +46,6 @@ jobs:
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:
-          name: Userguide-${{github.ref_name}}
+          name: usbiss-ug-${{github.ref_name}}
           path: ${{github.event.repository.name}}_ug-${{github.ref_name}}.pdf
           retention-days: 30
