@@ -793,15 +793,10 @@ int usbiss_init( t_usbiss *self )
     /* init variable */
     self->uint8MsgLevel = 0;    // suppress all outputs
     self->uint32BaudRate = USBISS_UART_BAUD_RATE;   // default baudrate
-    self->uint8Fw = 0;      // firmware version
-    self->uint8Mode = 0;    // transfer mode
-    self->uint8IsOpen = 0;  // not open
-    /* init default path to UART based on platform */
-    #if defined(__linux__) || defined(__APPLE__)
-        strncpy(self->charPort, USBISS_UART_PATH_LINUX, sizeof(self->charPort));
-    #else
-        strncpy(self->charPort, USBISS_UART_PATH_WIN, sizeof(self->charPort));
-    #endif
+    self->uint8Fw = 0;          // firmware version
+    self->uint8Mode = 0;        // transfer mode
+    self->uint8IsOpen = 0;      // not open
+    (self->charPort)[0] = '\0'; // no port provided
     /* graceful end */
     return 0;
 }

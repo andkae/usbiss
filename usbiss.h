@@ -30,8 +30,6 @@
  *  help constants for programm
  *  @{
  */
-#define USBISS_UART_PATH_LINUX  "/dev/ttyACM0"  /**< default path on Linux platform */
-#define USBISS_UART_PATH_WIN    "COM1"          /**< default path on Windows platform */
 #define USBISS_UART_BAUD_RATE   230400          /**< default baudrate */
 #define USBISS_ID               0x07            /**< module ID */
 #define USBISS_FW_MIN           (8)             /**< minimal USB-ISS firmware version for proper operation */
