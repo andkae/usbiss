@@ -824,14 +824,17 @@ void usbiss_set_verbose( t_usbiss *self, uint8_t verbose )
 int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
 {
     /** variable **/
-    uint8_t     uint8Wr[16];    // write buffer
-    uint8_t     uint8Rd[16];    // read buffer
-    uint32_t    uint32RdLen;    // length of read buffer
-    char        charBuf[16];    // string buffer
+    uint8_t     uint8Wr[16];        // write buffer
+    uint8_t     uint8Rd[16];        // read buffer
+    uint32_t    uint32RdLen;        // length of read buffer
+    char        charBuf[16];        // string buffer
+    char        charUartAuto[256];  // autodedect USB-ISS uart port
+    char*       charPtrFirstUart;   // pointer to first UART port
+    int         intNumUarts;        // number of UART ports in system
 
     /* Function Call Message */
     if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
-    /* non default path provided? */
+    /* no autodetect path provided? */
     if ( '\0' != port[0] ) {
         if ( strlen(port) > (sizeof(self->charPort) - 1) ) {
             if ( 0 != self->uint8MsgLevel ) {
@@ -840,6 +843,43 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
             return -1;
         }
         strncpy(self->charPort, port, sizeof(self->charPort));
+    } else {    // consider first found UART device in system as USB-ISS uart port
+        /* get available USB-ISS suitable ports from system */
+        intNumUarts = usbiss_list_uart(charUartAuto, sizeof(charUartAuto), " ");
+        /* select Port */
+        switch (intNumUarts) {
+            /* no UART */
+            case 0:
+                if ( 0 != self->uint8MsgLevel ) {
+                    printf("  ERROR:%s: no USB-ISS suitable port found.\n", __FUNCTION__);
+                }
+                return -1;
+                break;
+            /* one UART */
+            case 1:
+                if ( strlen(charUartAuto) > (sizeof(self->charPort) - 1) ) {
+                    if ( 0 != self->uint8MsgLevel ) {
+                        printf("  ERROR:%s: UART port path too long.\n", __FUNCTION__);
+                    }
+                    return -1;
+                }
+                strncpy(self->charPort, charUartAuto, sizeof(self->charPort));  // copy uart path
+                break;
+            /* multiple UART ports */
+            default:
+                charPtrFirstUart = strtok(charUartAuto, " ");   // split list of UART ports and choose first
+                if ( strlen(charPtrFirstUart) > (sizeof(self->charPort) - 1) ) {
+                    if ( 0 != self->uint8MsgLevel ) {
+                        printf("  ERROR:%s: UART port path too long.\n", __FUNCTION__);
+                    }
+                    return -1;
+                }
+                strncpy(self->charPort, charPtrFirstUart, sizeof(self->charPort));
+                break;
+        }
+    }
+    if ( 0 != self->uint8MsgLevel ) {   // user message
+        printf("  INFO:%s: selected UART: %s\n", __FUNCTION__, self->charPort);
     }
     /* non default baudrate */
     if ( 0 != baud ) {
