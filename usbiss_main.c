@@ -312,9 +312,7 @@ void usbiss_term_help(const char path[])
         "  %s --options... \n"
         "\n"
         "Options:\n"
-        "  -p, --port=[<UART>]         USB-ISS belonging <UART> port\n"
-        "            =[COM1]             Windows default\n"
-        "            =[/dev/ttyACM0]     Linux default\n"
+        "  -p, --port=[first]          USB-ISS belonging UART port, default: first found port\n"
         "  -b, --baud=[%06d]         UART baud rate\n"
         "  -m, --mode=[I2C_S_100KHZ]   I2C transfer mode\n"
         "                                Standard [I2C_S_20KHZ  | I2C_S_50KHZ  | I2C_S_100KHZ | I2C_S_400KHZ]\n"
@@ -539,6 +537,7 @@ int main (int argc, char *argv[])
     }
     if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
         printf("[ OKAY ]   USBISS connected\n");
+        printf("             Port     : %s\n", usbiss.charPort);
         printf("             Baudrate : %i\n", usbiss.uint32BaudRate);
         printf("             Firmware : 0x%02x\n", usbiss.uint8Fw);
         printf("             Serial   : %s\n", usbiss.charSerial);
