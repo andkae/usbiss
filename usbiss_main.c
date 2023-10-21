@@ -34,15 +34,14 @@
 
 
 /**
- *  @defgroup HELP_CONSTANTS
- *  help constants for programm
+ *  @defgroup MSG_LEVEL
+ *  Notification level for output messages
  *  @{
  */
-#define USBISS_TERM_VERSION     "0.1.0"     /**< Programm version */
 #define MSG_LEVEL_BRIEF         0           /**< Brief Message level */
 #define MSG_LEVEL_NORM          1           /**< Normal Message level */
 #define MSG_LEVEL_VERB          2           /**< Verbose Message Level */
-/** @} */   // HELP_CONSTANTS
+/** @} */   // MSG_LEVEL
 
 
 
@@ -52,7 +51,7 @@
  *  @{
  */
 #ifndef USBISS_TERM_GITDESCR
-    #define USBISS_TERM_GITDESCR    "no-git-build"      /**< Compile Switch was not provided */
+    #define USBISS_TERM_GITDESCR    "no-git-build"      /**< GIT revision was not provided by make */
 #endif
 /** @} */   // GIT
 
@@ -306,7 +305,7 @@ void usbiss_term_help(const char path[])
     /* print help */
     printf(
         "\n"
-        "USBISS V%s - a CLI tool to interact with the USB-ISS\n"
+        "USBISS - CLI tool to interact with USB-ISS\n"
         "  http://www.robot-electronics.co.uk/htm/usb_iss_tech.htm\n"
         "\n"
         "Usage:\n"
@@ -343,7 +342,6 @@ void usbiss_term_help(const char path[])
         "Contribute:\n"
         "  https://github.com/andkae/usbiss\n"
         "\n",
-        USBISS_TERM_VERSION,
         path,
         USBISS_UART_BAUD_RATE,
         uart
