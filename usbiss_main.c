@@ -378,7 +378,6 @@ int main (int argc, char *argv[])
         /* flags */
         { "brief",      no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_BRIEF },
         { "verbose",    no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_VERB },
-        { "test",       no_argument,    (int*) &uint8TestUsbIss, 1 },
         /* We distinguish them by their indices */
         {"port",        required_argument,  0,  'p'},
         {"baud",        required_argument,  0,  'b'},
@@ -386,11 +385,12 @@ int main (int argc, char *argv[])
         {"command",     required_argument,  0,  'c'},
         {"version",     no_argument,        0,  'v'},
         {"list",        no_argument,        0,  'l'},
+        {"test",        no_argument,        0,  't'},
         {"help",        no_argument,        0,  'h'},
         /* Protection */
         {0,             0,                  0,  0 }     // NULL
     };
-    static const char shortopt[] = "p:b:m:c:vlh";
+    static const char shortopt[] = "p:b:m:c:vlth";
 
 
 
@@ -486,6 +486,11 @@ int main (int argc, char *argv[])
                 goto GD_END_L0;
                 break;
 
+            /* check connection to USB-ISS only */
+            case 't':
+                uint8TestUsbIss = 1;
+                break;
+
             /* Something went wrong */
             default:
                 if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
@@ -509,10 +514,6 @@ int main (int argc, char *argv[])
     /* propagate message level */
     if ( MSG_LEVEL_VERB == uint8MsgLevel ) {
         usbiss_set_verbose(&usbiss, 1); // enable advanced output
-    } else {
-        if ( 0 != uint8TestUsbIss ) {   // force normal output level for test, needed under windows compile
-            uint8MsgLevel = MSG_LEVEL_NORM;
-        }
     }
 
     /* check for proper command */
