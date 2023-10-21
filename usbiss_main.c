@@ -413,7 +413,7 @@ int main (int argc, char *argv[])
 
     /* flag defaults */
     uint32BaudRate = 0; // use usbiss defaults
-    charPort[0] = '\0'; // use defaults
+    charPort[0] = '\0'; // use first found UART port in system
     charPtrCmd = NULL;  // no command
     strncpy(charMode, "I2C_S_100KHZ", sizeof(charMode));
 
