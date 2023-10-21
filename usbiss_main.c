@@ -324,6 +324,7 @@ void usbiss_term_help(const char path[])
         "  -h, --help                  Help\n"
         "  -v, --version               Version\n"
         "  -l, --list                  List USBISS suitable UART ports\n"
+        "  -t, --test                  Checks USB-ISS connection\n"
         "      --verbose               Advanced output\n"
         "      --brief                 Only mandatory output\n"
         "\n"
