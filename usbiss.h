@@ -33,6 +33,8 @@
 #define USBISS_UART_BAUD_RATE   230400          /**< default baudrate */
 #define USBISS_ID               0x07            /**< module ID */
 #define USBISS_FW_MIN           (8)             /**< minimal USB-ISS firmware version for proper operation */
+#define USBISS_VID              (0x04d8)        /**< USB-ISS Virtual COM Port Vendor ID */
+#define USBISS_DID              (0xffee)        /**< USB-ISS Virtual COM Port Device/Model ID */
 /** @} */   // USBISS_MISC
 
 
