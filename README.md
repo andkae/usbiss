@@ -146,7 +146,7 @@ List USB-ISS suitable UART ports.
 | --- | ------------------------------ |
 | str | Found UART ports on system     |
 | len | max length of string           |
-| sep | separator between listes ports |
+| sep | separator between listed ports |
 
 #### Return:
 Number of found UART ports in system.
