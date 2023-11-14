@@ -30,11 +30,11 @@
  *  help constants for programm
  *  @{
  */
-#define USBISS_UART_BAUD_RATE   230400          /**< default baudrate */
-#define USBISS_ID               0x07            /**< module ID */
-#define USBISS_FW_MIN           (8)             /**< minimal USB-ISS firmware version for proper operation */
-#define USBISS_VCP_VID          (0x04d8)        /**< USB-ISS Virtual COM Port Vendor ID */
-#define USBISS_VCP_DID          (0xffee)        /**< USB-ISS Virtual COM Port Device/Model ID */
+#define USBISS_UART_BAUD_RATE   230400      /**< default baudrate */
+#define USBISS_ID               0x07        /**< module ID */
+#define USBISS_FW_MIN           (8)         /**< minimal USB-ISS firmware version for proper operation */
+#define USBISS_VCP_VID          "04d8"      /**< USB-ISS Virtual COM Port Vendor ID */
+#define USBISS_VCP_PID          "ffee"      /**< USB-ISS Virtual COM Port Device/Product ID */
 /** @} */   // USBISS_MISC
 
 

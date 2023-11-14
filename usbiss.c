@@ -28,7 +28,7 @@
                         // general functions
 #include <stdint.h>     // defines fixed data types, like int8_t...
 #include <string.h>     // string handling functions
-#include <strings.h>    // stringcasecmp
+#include <strings.h>    // strcasecmp
 #include <stdarg.h>     // variable parameter list
 /** Custom Libs **/
 #include "simple_uart.h"    // cross platform UART driver
@@ -760,23 +760,56 @@ int usbiss_list_uart( char *str, size_t len, const char sep[] )
     char    **names;
     ssize_t numTTY;
     int     numUsbIssTTY = 0;
+    char    decription[1024];   // uart port description
+    char    chrPid[5];  // product id
+    char    chrVid[5];  // vendor id
+    char*   pHelp;      // help pointer
 
     /* list UART ports and build */
     numTTY = simple_uart_list(&names);  // get UART ports from system
     str[0] = '\0';
     for (ssize_t i = 0; i < numTTY; i++) {
-        #if defined(__linux__) || defined(__APPLE__)
-            if ( NULL != strstr(names[i], "ttyACM") ) {
-        #endif
-            /* make array to simple string */
-            snprintf(str+strlen(str), len-strlen(str), "%s%s", names[i], sep);
-            ++numUsbIssTTY;
-        #if defined(__linux__) || defined(__APPLE__)
+    #if defined(__linux__)
+        if ( NULL == strstr(names[i], "ttyACM") ) { // in linux has USB-ISS the uart port ttyACM*
+            continue;
+        }
+    # endif
+        /*  accquire port description
+         *    f.e. Linux: manufacturer='Devantech Ltd.',product='USB-ISS.',PID=ffee,VID=04d8,serial=00060147
+         */
+        if ( 0 == simple_uart_describe(names[i], decription, sizeof(decription)) ) {
+            /* init */
+            chrPid[0] = '\0';
+            chrVid[0] = '\0';
+            /* get PID */
+            pHelp = strstr(decription, "PID=");
+            if ( (NULL != pHelp) && (!(strlen(pHelp) < 4)) ) {
+                strncpy(chrPid, pHelp + 4, 4);
+                chrPid[4] = '\0';
             }
-        #endif
+            /* get VID */
+            pHelp = strstr(decription, "VID=");
+            if ( (NULL != pHelp) && (!(strlen(pHelp) < 4)) ) {
+                strncpy(chrVid, pHelp + 4, 4);
+                chrVid[4] = '\0';
+            }
+            /* VID/PID match? */
+            if ( (0 == strcasecmp(chrVid, USBISS_VCP_VID)) && (0 == strcasecmp(chrPid, USBISS_VCP_PID)) ) {
+                snprintf(str+strlen(str), len-strlen(str), "%s%s", names[i], sep);
+                ++numUsbIssTTY;
+            }
+        }
     }
+    /* free memory */
+    for ( ssize_t i = 0; i < numTTY; i++) {
+        if ( names[i] ) {
+            free(names[i]);
+        }
+    }
+    free(names);
+    /* drop last separator */
     if ( strlen(sep) < strlen(str) ) {
-        str[strlen(str)-strlen(sep)] = '\0';    // cut separator
+        str[strlen(str)-strlen(sep)] = '\0';
     }
     /* finish */
     return numUsbIssTTY;
