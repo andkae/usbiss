@@ -783,13 +783,13 @@ int usbiss_list_uart( char *str, size_t len, const char sep[] )
             chrVid[0] = '\0';
             /* get PID */
             pHelp = strstr(decription, "PID=");
-            if ( (NULL != pHelp) && (!(strlen(pHelp) < 4)) ) {
+            if ( (NULL != pHelp) && (!(strlen(pHelp) < 8)) ) {
                 strncpy(chrPid, pHelp + 4, 4);
                 chrPid[4] = '\0';
             }
             /* get VID */
             pHelp = strstr(decription, "VID=");
-            if ( (NULL != pHelp) && (!(strlen(pHelp) < 4)) ) {
+            if ( (NULL != pHelp) && (!(strlen(pHelp) < 8)) ) {
                 strncpy(chrVid, pHelp + 4, 4);
                 chrVid[4] = '\0';
             }
