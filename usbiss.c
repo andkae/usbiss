@@ -754,7 +754,7 @@ char *usbiss_ero_str(uint8_t error)
  *  usbiss_list_uart
  *    List suitable port for USB-ISS connection
  */
-int usbiss_list_uart( char *str, size_t len, const char sep[] )
+int usbiss_list_uart( char *uart, size_t len, const char sep[] )
 {
     /** Variables **/
     char    **names;
@@ -765,9 +765,16 @@ int usbiss_list_uart( char *str, size_t len, const char sep[] )
     char    chrVid[5];  // vendor id
     char*   pHelp;      // help pointer
 
+
+    /* make empty */
+    uart[0] = '\0';
     /* list UART ports and build */
     numTTY = simple_uart_list(&names);  // get UART ports from system
-    str[0] = '\0';
+    /* no ports, exit */
+    if ( 0 == numTTY ) {
+        return 0;
+    }
+    /* find USB-ISS matching */
     for (ssize_t i = 0; i < numTTY; i++) {
     #if defined(__linux__)
         if ( NULL == strstr(names[i], "ttyACM") ) { // in linux has USB-ISS the uart port ttyACM*
@@ -795,7 +802,7 @@ int usbiss_list_uart( char *str, size_t len, const char sep[] )
             }
             /* VID/PID match? */
             if ( (0 == strcasecmp(chrVid, USBISS_VCP_VID)) && (0 == strcasecmp(chrPid, USBISS_VCP_PID)) ) {
-                snprintf(str+strlen(str), len-strlen(str), "%s%s", names[i], sep);
+                snprintf(uart+strlen(uart), len-strlen(uart), "%s%s", names[i], sep);
                 ++numUsbIssTTY;
             }
         }
@@ -808,8 +815,8 @@ int usbiss_list_uart( char *str, size_t len, const char sep[] )
     }
     free(names);
     /* drop last separator */
-    if ( strlen(sep) < strlen(str) ) {
-        str[strlen(str)-strlen(sep)] = '\0';
+    if ( strlen(sep) < strlen(uart) ) {
+        uart[strlen(uart)-strlen(sep)] = '\0';
     }
     /* finish */
     return numUsbIssTTY;

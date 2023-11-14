@@ -227,14 +227,14 @@ char *usbiss_ero_str(uint8_t error);
  *
  *  Lists system UART ports
  *
- *  @param[in,out]  str                 USB-ISS matching UART ports
+ *  @param[in,out]  uart                USB-ISS matching UART ports
  *  @param[in]      len                 maximum string length
  *  @param[in]      sep                 separator between suitable ports
  *  @return         int                 number of USB-ISS matching ports
  *  @since          July 21, 2023
  *  @author         Andreas Kaeberlein
  */
-int usbiss_list_uart( char *str, size_t len, const char sep[] );
+int usbiss_list_uart( char *uart, size_t len, const char sep[] );
 
 
 
