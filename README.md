@@ -87,7 +87,7 @@ This example uses the EEPROM [24C256](https://ww1.microchip.com/downloads/en/dev
 device on the USB-ISS.
 
 #### Scan
-Scan the I2C bus for devices.
+Scans I2C bus for devices.
 
 ```bash
 sudo ./bin/usbiss -m I2C_H_400KHz -s
@@ -293,7 +293,7 @@ Write and Read data takes place in the same _data_ buffer.
 ## Acknowledgment
 
 Special thanks to [AndreRenaud](https://github.com/AndreRenaud) for providing [simple_uart](https://github.com/AndreRenaud/simple_uart). This
-nice module allows us to run [USBISS](https://github.com/andkae/usbiss) for Linux and Windows.
+module allows us to run [USBISS](https://github.com/andkae/usbiss) for Linux and Windows.
 
 
 ## References
