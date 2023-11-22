@@ -239,7 +239,7 @@ _Note: Currently only I2C modes supported._
 int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t *i2c, uint8_t len );
 ```
 
-Scan given I2C address range for I2C devices.
+Scans given I2C address range for I2C devices. While scanning is for each device a startbit with write access followed by an stopbit transferred.
 
 | Arg   | Description                         |
 | ----- | ----------------------------------- |
