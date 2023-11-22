@@ -354,7 +354,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode );
  *  @since          Novembre 22, 2023
  *  @author         Andreas Kaeberlein
  */
-int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t *i2c, uint8_t len );
+int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t* i2c, uint8_t len );
 
 
 

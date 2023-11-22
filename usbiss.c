@@ -1115,7 +1115,7 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
  *  usbiss_i2c_scan
  *    scan for I2C devices
  */
-int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t *i2c, uint8_t len )
+int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t* i2c, uint8_t len )
 {
     /** Variables **/
     int         intNumI2c = 0;  // found i2c devices
