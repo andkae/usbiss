@@ -308,7 +308,7 @@ static int process_cmd (char *str, uint8_t *adr, uint8_t **data, uint32_t *wrLen
                 }
             }
         }
-        /* prepare nest */
+        /* prepare next */
         ++i;
         ptr = strtok(NULL, " ");
     }
@@ -337,7 +337,7 @@ static int process_cmd (char *str, uint8_t *adr, uint8_t **data, uint32_t *wrLen
                     }
                 }
             }
-            /* prepare nest */
+            /* prepare next */
             ++i;
             ptr = strtok(NULL, " ");
         }
@@ -424,6 +424,7 @@ int main (int argc, char *argv[])
     char        charMode[32];                   // CLI: change mode
     char*       charPtrCmd;                     // CLI: operation command
     char*       charPtrBuf;                     // pointer buffer help variable
+    char*       charPtrHelp;                    // help pointer for string operation
     char        charHelp[32];                   // buffer help variable
     uint8_t     uint8I2cAdr = __UINT8_MAX__;    // i2c address
     uint8_t*    uint8PtrWrRd = NULL;            // array with write/read data
@@ -534,8 +535,29 @@ int main (int argc, char *argv[])
                     int8I2cScanAdr[0] = 0x03;   // start address
                     int8I2cScanAdr[1] = 0x77;   // stop address
                 } else {
-                    /* parse start stop adr */
-                    if ( 2 != sscanf(optarg, "%i:%i", (int*) &(int8I2cScanAdr[0]), (int*) &(int8I2cScanAdr[1])) ) {
+                    /* copy to avoid mess-up of optarg */
+                    charPtrBuf = malloc(strlen(optarg)+1);
+                    if ( NULL == charPtrBuf ) {
+                        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                            printf("[ FAIL ]   memory allocation\n");
+                        }
+                        goto ERO_END_L0;
+                    }
+                    strncpy(charPtrBuf, optarg, strlen(optarg)+1);
+                    /* parse start/stop adr */
+                    uint8_t cnt = 0;    // counter
+                    charPtrHelp = strtok(charPtrBuf, ":");
+                    while( NULL != charPtrHelp ) {
+                        int8I2cScanAdr[cnt] = (int8_t) to_int(charPtrHelp);
+                        ++cnt;
+                        charPtrHelp = strtok(NULL, ":");
+                        if ( 2 < cnt ) {
+                            break;
+                        }
+                    }
+                    free(charPtrBuf);
+                    /* check for success */
+                    if ( (-1 == int8I2cScanAdr[0]) || (-1 == int8I2cScanAdr[1]) ) {
                         if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
                             printf("[ FAIL ]   Set I2C scan address range\n");
                             printf("             use option '--scan=start:stop'\n");
