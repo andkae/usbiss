@@ -7,6 +7,7 @@
     + [Arguments](#arguments)
     + [Test](#test)
     + [Run](#run)
+      - [Scan](#scan)
       - [Write](#write)
       - [Read](#read)
   * [API](#api)
@@ -16,6 +17,7 @@
     + [Open](#open)
     + [Close](#close)
     + [Mode](#mode)
+    + [I2C-Scan](#i2c-scan)
     + [I2C-Write](#i2c-write)
     + [I2C-Read](#i2c-read)
     + [I2C-Write-Read](#i2c-write-read)
@@ -56,6 +58,7 @@
 | -b, --baud=[230400]       | communication speed Host/USB-ISS                                                                                            | UART baud rate                                                                            |
 | -m, --mode=[I2C_S_100KHZ] | I2C transfer mode, use _usbiss -h_ for valid modes                                                                          | f.e. _I2C_H_400KHZ_                                                                       |
 | -c, --command={cmd}       | I2C access to perform <br /> write: _adr7_ w _b0_ _bn_ <br /> read: _adr7_ r _cnt_ <br /> write-read: _adr7_ w _bn_ r _cnt_ | _adr7_: I2C slave address <br /> _bn_: write byte value <br />_cnt_: number of read bytes |
+| -s, --scan=[0x3:0x77]     | scan I2C bus for devices                                                                                                    | default: scan address range 0x3 to 0x77                                                   |
 | -h, --help                | help                                                                                                                        |                                                                                           |
 | -v, --version             | output USBISS revision                                                                                                      |                                                                                           |
 | -l, --list                | list USB-ISS suitable ports                                                                                                 |                                                                                           |
@@ -66,7 +69,7 @@
 ### Test
 Checks the connection between PC and USB-ISS:
 ```bash
-sudo ./bin/usbiss --test
+sudo ./bin/usbiss -t
 ```
 
 Following output:
@@ -80,7 +83,37 @@ Following output:
 ```
 
 ### Run
-This example modifies the EEPROM [24C256](https://ww1.microchip.com/downloads/en/devicedoc/doc0670.pdf) memory content.
+This example uses the EEPROM [24C256](https://ww1.microchip.com/downloads/en/devicedoc/doc0670.pdf) as exclusively
+device on the USB-ISS.
+
+#### Scan
+Scan the I2C bus for devices.
+
+```bash
+sudo ./bin/usbiss -m I2C_H_400KHz -s
+```
+
+Following output:
+```bash
+[ INFO ]   USBISS started
+[ OKAY ]   USBISS connected
+             Port     : COM6
+             Baudrate : 230400
+             Firmware : 0x09
+             Serial   : 00060147
+             Mode     : I2C_H_400KHZ
+[ OKAY ]   Scan I2C bus in range 0x3:0x77
+                  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+             00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+             10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+             20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+             30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+             40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+             50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+             60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+             70: -- -- -- -- -- -- -- --
+[ OKAY ]   ended normally
+```
 
 #### Write
 Write to device _0x50_ address _0_ the data _0x01 0x02 0x03_. The Arg accepts arbitary write data length, but keep the page overoll in this case in mind.
@@ -200,6 +233,20 @@ _Note: Currently only I2C modes supported._
 | Arg                         | Description                                                                                                                                                                                  |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | mode=[USBISS_I2C_S_100KHZ]  | I2C Standard: _USBISS_I2C_S_20KHZ_, _USBISS_I2C_S_50KHZ_, _USBISS_I2C_S_100KHZ_, _USBISS_I2C_S_400KHZ_ <br /> I2C Fast: _USBISS_I2C_H_100KHZ_, _USBISS_I2C_H_400KHZ_, _USBISS_I2C_H_1000KHZ_ |
+
+### I2C-Scan
+```c
+int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t *i2c, uint8_t len );
+```
+
+Scan given I2C address range for I2C devices.
+
+| Arg   | Description                         |
+| ----- | ----------------------------------- |
+| start | scan start address                  |
+| stop  | scan stop address                   |
+| i2c   | array of found i2c device addresses |
+| len   | _i2c_ array size                    |
 
 ### I2C-Write
 ```c
