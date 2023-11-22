@@ -110,7 +110,7 @@ static void print_hexdump (char leadBlank[], void *mem, size_t size)
  *
  *  write data to hex string
  *
- *  @param[in]      leadBlank       number of leading blanks in hex line
+ *  @param[out]     str             converted string
  *  @param[in,out]  *mem            pointer to memory segment
  *  @param[in,out]  size            number of bytes in *mem to print
  *  @return         void
@@ -135,6 +135,65 @@ static void sprint_hex (char *str, void *mem, size_t size)
     }
     /* last blank gets terminator */
     *(str+(i*3-1)) = '\0';
+}
+
+
+
+/**
+ *  @brief sprint_i2c_adr
+ *
+ *  write data to hex string
+ *
+ *  @param[in]      blank           new line blanking
+ *  @param[in,out]  *str            output string
+ *  @param[in]      len             maximum length of *str
+ *  @param[in]      start           start address of i2c scan
+ *  @param[in]      stop            stop address of i2c scan
+ *  @param[in]      *i2c            present i2c addresses on bus
+ *  @param[in]      num             number of elements in *i2c
+ *  @return         void
+ *  @since          Novembre 22, 2023
+ */
+static void sprint_i2c_adr (const char *blank, char *str, size_t len, int8_t start, int8_t stop, int8_t *i2c, uint8_t num)
+{
+    /** Variables **/
+    const uint8_t   uint8StartAdr = (((uint8_t) start) & 0xf0); // rounds down, get 16 devices in a row
+    const uint8_t   uint8StopAdr = (uint8_t) ((((uint8_t) stop) | 0x0f) + 1);   // rounds up, get 16 devices in a row
+    uint8_t         i, j;   // iterators
+
+    /* make empty */
+    str[0] = '\0';
+    /* header */
+    snprintf (  str+strlen(str), len-strlen(str),
+                "%s     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f",
+                blank
+             );
+    /* iterate over address range */
+    for ( i = uint8StartAdr; i < uint8StopAdr; i++ ) {
+        /* new line? */
+        if ( 0 == (i%16) ) {
+            snprintf (  str+strlen(str), len-strlen(str),
+                        "\n%s%02x: ",
+                        blank,
+                        i
+                     );
+        }
+        /* current address in found addresses */
+        for ( j = 0; j < num; j++ ) {
+            if ( i == i2c[j] ) {
+                break;
+            }
+        }
+        if ( (i < start) || (i > stop) ) {
+            snprintf(str+strlen(str), len-strlen(str), "   ");
+        } else if ( j < num ) {
+            snprintf(str+strlen(str), len-strlen(str), "%02x ", i);
+        } else {
+            snprintf(str+strlen(str), len-strlen(str), "-- ");
+        }
+    }
+    /* append last line break */
+    snprintf(str+strlen(str), len-strlen(str), "\n");
 }
 
 
@@ -321,6 +380,7 @@ void usbiss_term_help(const char path[])
         "                                <adr7> w <b0> <bn>    : I2C write access with arbitrary number of write bytes <bn>\n"
         "                                <adr7> r <cnt>        : I2C read access with <cnt> bytes read\n"
         "                                <adr7> w <bn> r <cnt> : I2C write access followed by repeated start with read access\n"
+        "  -s, --scan=[0x03:0x77]      Scans I2C bus for I2C devices, optional argument is [start:stop] address\n"
         "  -h, --help                  Help\n"
         "  -v, --version               Version\n"
         "  -l, --list                  List USBISS suitable UART ports\n"
@@ -358,16 +418,20 @@ int main (int argc, char *argv[])
     t_usbiss                usbiss;                         // usbiss handle
     uint8_t                 uint8MsgLevel = MSG_LEVEL_NORM; // CLI: message level
     uint8_t                 uint8TestUsbIss = 0;            // CLI: establish only a connection to USB-Iss and then close without any oter interaction on I2C
+    int8_t                  int8I2cScanAdr[2] = {-1, -1};   // CLI: i2c scan start/stop address
     uint32_t                uint32BaudRate;                 // CLI: baud rate
     char                    charPort[256];                  // CLI: port
     char                    charMode[32];                   // CLI: change mode
     char*                   charPtrCmd;                     // CLI: operation command
-    char*                   charPtrBuf;                     // buffer help variable
+    char*                   charPtrBuf;                     // pointer buffer help variable
+    char                    charHelp[32];                   // buffer help variable
     uint8_t                 uint8I2cAdr = __UINT8_MAX__;    // i2c address
     uint8_t*                uint8PtrWrRd = NULL;            // array with write/read data
     uint32_t                uint32WrLen = 0;                // number of write elements in uint8PtrWrRd
     uint32_t                uint32RdLen = 0;                // number of read elements in uint8PtrWr
     uint8_t*                uint8PtrHelp = NULL;            // help variable for wr-rd i2c function
+    int8_t                  int8I2cDevices[128];            // list with addresses of present i2c devices, I2C 7bit addressing -> 128
+
 
 
     /* command line parser */
@@ -378,10 +442,11 @@ int main (int argc, char *argv[])
         { "brief",      no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_BRIEF },
         { "verbose",    no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_VERB },
         /* We distinguish them by their indices */
-        {"port",        required_argument,  0,  'p'},
+        {"port",        required_argument,  0,  'p'},   // requires in shortop ':'
         {"baud",        required_argument,  0,  'b'},
         {"mode",        required_argument,  0,  'm'},
         {"command",     required_argument,  0,  'c'},
+        {"scan",        optional_argument,  0,  's'},   // requires in shortop '::'
         {"version",     no_argument,        0,  'v'},
         {"list",        no_argument,        0,  'l'},
         {"test",        no_argument,        0,  't'},
@@ -389,7 +454,7 @@ int main (int argc, char *argv[])
         /* Protection */
         {0,             0,                  0,  0 }     // NULL
     };
-    static const char shortopt[] = "p:b:m:c:vlth";
+    static const char shortopt[] = "p:b:m:c:s::vlth";
 
 
 
@@ -425,7 +490,7 @@ int main (int argc, char *argv[])
             case 0:
                 break;
 
-            /* process '--port<COMX | /dev/tty*>' argument */
+            /* process '--port=<COMX | /dev/tty*>' argument */
             case 'p':
                 /* check for enough memory */
                 if ( (strlen(optarg) + 1) > sizeof(charPort) ) {
@@ -438,12 +503,12 @@ int main (int argc, char *argv[])
                 strncpy(charPort, optarg, sizeof(charPort));
                 break;
 
-            /* process '--baud<baud>' argument */
+            /* process '--baud=<baud>' argument */
             case 'b':
                 uint32BaudRate = (uint32_t) atoi(optarg);   // convert to integer
                 break;
 
-            /* process '--mode<mode>' argument */
+            /* process '--mode=<mode>' argument */
             case 'm':
                 /* check for enough memory */
                 if ( (strlen(optarg) + 1) > sizeof(charMode) ) {
@@ -456,10 +521,34 @@ int main (int argc, char *argv[])
                 strncpy(charMode, optarg, sizeof(charMode));
                 break;
 
-            /* process '--command<cmd>' argument */
+            /* process '--command=<cmd>' argument */
             case 'c':
                 charPtrCmd = malloc(strlen(optarg) + 2);
                 strncpy(charPtrCmd, optarg, strlen(optarg) + 2);
+                break;
+
+            /* process '--scan=<start:stop>' argument */
+            case 's':
+                if ( NULL == optarg ) { // default
+                    int8I2cScanAdr[0] = 0x03;   // start address
+                    int8I2cScanAdr[1] = 0x77;   // stop address
+                } else {
+                    /* parse start stop adr */
+                    if ( 2 != sscanf(optarg, "%i:%i", (int*) &(int8I2cScanAdr[0]), (int*) &(int8I2cScanAdr[1])) ) {
+                        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                            printf("[ FAIL ]   Set I2C scan address range\n");
+                            printf("             use option '--scan=start:stop'\n");
+                        }
+                        goto ERO_END_L0;
+                    }
+                    /* check for ascending */
+                    if ( int8I2cScanAdr[0] > int8I2cScanAdr[1] ) {
+                        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                            printf("[ FAIL ]   I2C scan range nedds to be ascending, stop >= start\n");
+                        }
+                        goto ERO_END_L0;
+                    }
+                }
                 break;
 
             /* Print command line options */
@@ -516,7 +605,7 @@ int main (int argc, char *argv[])
     }
 
     /* check for proper command */
-    if ( 0 == uint8TestUsbIss ) {   // check only if no connection test
+    if ( (0 == uint8TestUsbIss) && (-1 == int8I2cScanAdr[0]) ) {   // check only if no connection test
         if ( NULL == charPtrCmd ) {
             printf("[ FAIL ]   no transfer requested, use -c for proper args\n");
             goto ERO_END_L0;
@@ -558,6 +647,49 @@ int main (int argc, char *argv[])
     }
     if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
         printf("             Mode     : %s\n", usbiss_mode_to_human(usbiss.uint8Mode));
+    }
+
+    /* I2C Scan? */
+    if ( -1 != int8I2cScanAdr[0] ) {
+        /* USB-ISS configured for I2C mode */
+        if ( 0 != usbiss_is_i2c_mode(usbiss.uint8Mode) ) {
+            printf("[ FAIL ]   Option '-s' only for I2C mode available\n");
+            goto ERO_END_L1;
+        }
+        /* scan i2c address */
+            // TODO
+
+        /* allocate memory for print */
+        charPtrBuf = malloc(1024);
+        if ( NULL == charPtrBuf ) {
+            printf("[ FAIL ]   memory allocation\n");
+            goto ERO_END_L1;
+        }
+
+        /* todo */
+        int8I2cDevices[0] = 0x15;
+        int8I2cDevices[1] = 0x32;
+
+        /* normal/debug print */
+        charHelp[0] = '\0';
+        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            strncpy(charHelp, "             ", sizeof(charHelp));
+            printf("[ OKAY ]   Scan I2C bus in range 0x%0x:0x%0x\n", int8I2cScanAdr[0], int8I2cScanAdr[1]);
+        }
+        /* scan result */
+        sprint_i2c_adr (  charHelp,             // leading blanks in new line
+                          charPtrBuf,           // output string
+                          1024,                 // max size of output string
+                          int8I2cScanAdr[0],    // i2c scan start address
+                          int8I2cScanAdr[1],    // stop address
+                          int8I2cDevices,
+                          2 // todo
+                       );
+        printf("%s", charPtrBuf);
+        /* release memory */
+        free(charPtrBuf);
+        /* normale end */
+        goto GD_END_L1;
     }
 
     /* perform access */
