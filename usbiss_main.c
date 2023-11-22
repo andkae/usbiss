@@ -415,22 +415,23 @@ void usbiss_term_help(const char path[])
 int main (int argc, char *argv[])
 {
     /** Variables **/
-    t_usbiss                usbiss;                         // usbiss handle
-    uint8_t                 uint8MsgLevel = MSG_LEVEL_NORM; // CLI: message level
-    uint8_t                 uint8TestUsbIss = 0;            // CLI: establish only a connection to USB-Iss and then close without any oter interaction on I2C
-    int8_t                  int8I2cScanAdr[2] = {-1, -1};   // CLI: i2c scan start/stop address
-    uint32_t                uint32BaudRate;                 // CLI: baud rate
-    char                    charPort[256];                  // CLI: port
-    char                    charMode[32];                   // CLI: change mode
-    char*                   charPtrCmd;                     // CLI: operation command
-    char*                   charPtrBuf;                     // pointer buffer help variable
-    char                    charHelp[32];                   // buffer help variable
-    uint8_t                 uint8I2cAdr = __UINT8_MAX__;    // i2c address
-    uint8_t*                uint8PtrWrRd = NULL;            // array with write/read data
-    uint32_t                uint32WrLen = 0;                // number of write elements in uint8PtrWrRd
-    uint32_t                uint32RdLen = 0;                // number of read elements in uint8PtrWr
-    uint8_t*                uint8PtrHelp = NULL;            // help variable for wr-rd i2c function
-    int8_t                  int8I2cDevices[128];            // list with addresses of present i2c devices, I2C 7bit addressing -> 128
+    t_usbiss    usbiss;                         // usbiss handle
+    uint8_t     uint8MsgLevel = MSG_LEVEL_NORM; // CLI: message level
+    uint8_t     uint8TestUsbIss = 0;            // CLI: establish only a connection to USB-Iss and then close without any oter interaction on I2C
+    int8_t      int8I2cScanAdr[2] = {-1, -1};   // CLI: i2c scan start/stop address
+    uint32_t    uint32BaudRate;                 // CLI: baud rate
+    char        charPort[256];                  // CLI: port
+    char        charMode[32];                   // CLI: change mode
+    char*       charPtrCmd;                     // CLI: operation command
+    char*       charPtrBuf;                     // pointer buffer help variable
+    char        charHelp[32];                   // buffer help variable
+    uint8_t     uint8I2cAdr = __UINT8_MAX__;    // i2c address
+    uint8_t*    uint8PtrWrRd = NULL;            // array with write/read data
+    uint32_t    uint32WrLen = 0;                // number of write elements in uint8PtrWrRd
+    uint32_t    uint32RdLen = 0;                // number of read elements in uint8PtrWr
+    uint8_t*    uint8PtrHelp = NULL;            // help variable for wr-rd i2c function
+    int8_t      int8I2cDevices[128];            // list with addresses of present i2c devices, I2C 7bit addressing -> 128
+    int         intRet;                         // help variable for function return
 
 
 
@@ -657,19 +658,19 @@ int main (int argc, char *argv[])
             goto ERO_END_L1;
         }
         /* scan i2c address */
-            // TODO
-
+        intRet = usbiss_i2c_scan(&usbiss, int8I2cScanAdr[0], int8I2cScanAdr[1], (int8_t*) &int8I2cDevices, sizeof(int8I2cDevices)/sizeof(int8I2cDevices[0]));
+        if ( 0 > intRet ) {
+            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                printf("[ FAIL ]   Scan I2C bus in range 0x%0x:0x%0x\n", int8I2cScanAdr[0], int8I2cScanAdr[1]);
+                goto ERO_END_L1;
+            }
+        }
         /* allocate memory for print */
         charPtrBuf = malloc(1024);
         if ( NULL == charPtrBuf ) {
             printf("[ FAIL ]   memory allocation\n");
             goto ERO_END_L1;
         }
-
-        /* todo */
-        int8I2cDevices[0] = 0x15;
-        int8I2cDevices[1] = 0x32;
-
         /* normal/debug print */
         charHelp[0] = '\0';
         if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
@@ -677,13 +678,13 @@ int main (int argc, char *argv[])
             printf("[ OKAY ]   Scan I2C bus in range 0x%0x:0x%0x\n", int8I2cScanAdr[0], int8I2cScanAdr[1]);
         }
         /* scan result */
-        sprint_i2c_adr (  charHelp,             // leading blanks in new line
-                          charPtrBuf,           // output string
-                          1024,                 // max size of output string
+        sprint_i2c_adr (  charHelp,     // leading blanks in new line
+                          charPtrBuf,   // output string
+                          1024,         // max size of output string
                           int8I2cScanAdr[0],    // i2c scan start address
                           int8I2cScanAdr[1],    // stop address
-                          int8I2cDevices,
-                          2 // todo
+                          int8I2cDevices,           // recognized addresses
+                          (uint8_t) (intRet & 0xff) // found i2c devices
                        );
         printf("%s", charPtrBuf);
         /* release memory */
