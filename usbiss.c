@@ -235,36 +235,6 @@ static int usbiss_human_to_mode(const char *str, uint8_t *val)
 
 
 /**
- *  @brief Is I2C
- *
- *  Check if USB-ISS has I2C mode
- *
- *  @param[in]      mode                USB-ISS mode
- *  @return         int                 I2C mode active?
- *  @retval         0                   I2C mode
- *  @retval         -1                  Non I2C mode
- *  @since          July 18, 2023
- *  @author         Andreas Kaeberlein
- */
-static int usbiss_is_i2c_mode( uint8_t mode )
-{
-    /* build mode set frame */
-    switch ( mode ) {
-        /* I2C Modes */
-        case USBISS_I2C_S_20KHZ:    FALL_THROUGH;
-        case USBISS_I2C_S_50KHZ:    FALL_THROUGH;
-        case USBISS_I2C_S_100KHZ:   FALL_THROUGH;
-        case USBISS_I2C_S_400KHZ:   FALL_THROUGH;
-        case USBISS_I2C_H_100KHZ:   FALL_THROUGH;
-        case USBISS_I2C_H_400KHZ:   FALL_THROUGH;
-        case USBISS_I2C_H_1000KHZ:  return 0;
-    }
-    return -1;
-}
-
-
-
-/**
  *  @brief UART Freeing
  *
  *  Reads until UART recieve queue is empty
@@ -746,6 +716,28 @@ char *usbiss_ero_str(uint8_t error)
         default:                strncpy(str, "UNKNOWN",          sizeof(str)); break;
     }
     return str;
+}
+
+
+
+/**
+ *  usbiss_is_i2c_mode
+ *    check if USB-ISS is configured for I2C mode
+ */
+int usbiss_is_i2c_mode( uint8_t mode )
+{
+    /* build mode set frame */
+    switch ( mode ) {
+        /* I2C Modes */
+        case USBISS_I2C_S_20KHZ:    FALL_THROUGH;
+        case USBISS_I2C_S_50KHZ:    FALL_THROUGH;
+        case USBISS_I2C_S_100KHZ:   FALL_THROUGH;
+        case USBISS_I2C_S_400KHZ:   FALL_THROUGH;
+        case USBISS_I2C_H_100KHZ:   FALL_THROUGH;
+        case USBISS_I2C_H_400KHZ:   FALL_THROUGH;
+        case USBISS_I2C_H_1000KHZ:  return 0;
+    }
+    return -1;
 }
 
 

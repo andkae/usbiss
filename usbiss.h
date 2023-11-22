@@ -223,6 +223,22 @@ char *usbiss_ero_str(uint8_t error);
 
 
 /**
+ *  @brief Is I2C
+ *
+ *  Check if USB-ISS has I2C mode
+ *
+ *  @param[in]      mode                USB-ISS mode
+ *  @return         int                 I2C mode active?
+ *  @retval         0                   I2C mode
+ *  @retval         -1                  Non I2C mode
+ *  @since          July 18, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_is_i2c_mode( uint8_t mode );
+
+
+
+/**
  *  @brief list UART ports
  *
  *  Lists system UART ports
