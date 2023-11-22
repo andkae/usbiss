@@ -1112,6 +1112,74 @@ int usbiss_set_mode( t_usbiss *self, const char* mode )
 
 
 /**
+ *  usbiss_i2c_scan
+ *    scan for I2C devices
+ */
+int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t *i2c, uint8_t len )
+{
+    /** Variables **/
+    int         intNumI2c = 0;  // found i2c devices
+    int         intRet;         // help variable
+
+    /* Function Call Message */
+    if ( 0 != self->uint8MsgLevel ) { printf("__FUNCTION__ = %s\n", __FUNCTION__); };
+    /* USBISS open? */
+    if ( !self->uint8IsOpen ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  ERROR:%s: USBISS connection not open\n", __FUNCTION__);
+        }
+        return -1;
+    }
+    /* I2C mode setted? */
+    if ( 0 != usbiss_is_i2c_mode(self->uint8Mode) ) {
+        if ( 0 != self->uint8MsgLevel ) {
+            printf("  ERROR:%s: USBISS is configured for non I2C mode\n", __FUNCTION__);
+        }
+        return -1;
+    }
+    /* iterate over device addresses */
+    for ( uint8_t i = ((uint8_t) (start & 0x7f)); i < ((uint8_t)(stop & 0x7f)) + 1; i++ ) {
+        /* check for enough memory */
+        if ( !(intNumI2c < len) ) {
+            if ( 0 != self->uint8MsgLevel ) {
+                printf("  ERROR:%s: not enough memory\n", __FUNCTION__);
+            }
+            return -1;
+        }
+        /* send start bit */
+        for ( uint8_t j = 0; j < USBISS_I2C_SCAN_RETRY; j++ ) { // retry three times if something went wrong
+            /* apply startbit */
+            intRet = usbiss_i2c_startbit(self, (uint8_t) ((i << 1) | USBISS_I2C_WR));
+            /* i2c device present */
+            if ( 0 == intRet ) {
+                i2c[intNumI2c] = (int8_t) i;
+                ++intNumI2c;
+                break;
+            /* i2c device NOT present */
+            } else if ( USBISS_ERO_ID1 == intRet ) {
+                break;
+            }
+            /* user message */
+            if ( 0 != self->uint8MsgLevel ) {
+                printf("  WARN:%s: scan i2c adr %02x, retry...\n", __FUNCTION__, i);
+            }
+        }
+        /* Stop Bit */
+        intRet = usbiss_i2c_stopbit(self);
+        if ( 0 != intRet ) {
+            if ( 0 != self->uint8MsgLevel ) {
+                printf("  ERROR:%s: Stopbit failed, ero=0x%02x, BUS mayby clamped\n", __FUNCTION__, intRet);
+            }
+            return -1;
+        }
+    }
+    /* finish */
+    return intNumI2c;
+}
+
+
+
+/**
  *  usbiss_i2c_wr
  *    write to I2C device
  */
@@ -1152,7 +1220,7 @@ int usbiss_i2c_wr( t_usbiss *self, uint8_t adr7, void* data, size_t len )
     intRet = usbiss_i2c_data_wr(self, data, len);
     if ( 0 != intRet ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go one with STOP BIT to free the bus\n", __FUNCTION__, intRet);
+            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go on with STOP BIT to free the bus\n", __FUNCTION__, intRet);
         }
     }
     /* Stop Bit */
@@ -1210,7 +1278,7 @@ int usbiss_i2c_rd( t_usbiss *self, uint8_t adr7, void* data, size_t len )
     intRet = usbiss_i2c_data_rd(self, data, len);
     if ( 0 != intRet ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go one with STOP BIT to free the bus\n", __FUNCTION__, intRet);
+            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go on with STOP BIT to free the bus\n", __FUNCTION__, intRet);
         }
     }
     /* Stop Bit */
@@ -1268,7 +1336,7 @@ int usbiss_i2c_wr_rd( t_usbiss *self, uint8_t adr7, void* data, size_t wrLen, si
     intRet |= usbiss_i2c_data_wr(self, data, wrLen);
     if ( 0 != intRet ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go one with STOP BIT to free the bus\n", __FUNCTION__, intRet);
+            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go on with STOP BIT to free the bus\n", __FUNCTION__, intRet);
         }
     }
     /* Repeated start + ADR, changes direction to read */
@@ -1282,7 +1350,7 @@ int usbiss_i2c_wr_rd( t_usbiss *self, uint8_t adr7, void* data, size_t wrLen, si
     intRet |= usbiss_i2c_data_rd(self, data, rdLen);
     if ( 0 != intRet ) {
         if ( 0 != self->uint8MsgLevel ) {
-            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go one with STOP BIT to free the bus\n", __FUNCTION__, intRet);
+            printf("  ERROR:%s:PKG: Packet Transfer ero=0x%x, go on with STOP BIT to free the bus\n", __FUNCTION__, intRet);
         }
     }
     /* Stop Bit */

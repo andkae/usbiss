@@ -30,11 +30,12 @@
  *  help constants for programm
  *  @{
  */
-#define USBISS_UART_BAUD_RATE   230400      /**< default baudrate */
-#define USBISS_ID               0x07        /**< module ID */
+#define USBISS_UART_BAUD_RATE   (230400)    /**< default baudrate */
+#define USBISS_ID               (0x07)      /**< module ID */
 #define USBISS_FW_MIN           (8)         /**< minimal USB-ISS firmware version for proper operation */
 #define USBISS_VCP_VID          "04d8"      /**< USB-ISS Virtual COM Port Vendor ID */
 #define USBISS_VCP_PID          "ffee"      /**< USB-ISS Virtual COM Port Device/Product ID */
+#define USBISS_I2C_SCAN_RETRY   (3)         /**< In I2C Scan numb er of retries before giving up, f.e. bus is occupied by another master */
 /** @} */   // USBISS_MISC
 
 
@@ -331,6 +332,29 @@ int usbiss_close( t_usbiss *self );
  *  @author         Andreas Kaeberlein
  */
 int usbiss_set_mode( t_usbiss *self, const char* mode );
+
+
+
+/**
+ *  @brief Scan I2C devices
+ *
+ *  Scan on I2C bus for devices, uses write access for probe
+ *  but now byte is written
+ *    1) apply Startbit with write flag
+ *    2) apply Stopbit
+ *
+ *  @param[in,out]  self                common handle #t_usbiss
+ *  @param[in]      start               start address of i2c scan
+ *  @param[in]      stop                stop address of i2c scan
+ *  @param[in]      *i2c                present i2c devices on bus
+ *  @param[in]      len                 max numb er of entries in *i2c
+ *  @return         int                 number of found devices or error
+ *  @retval         >= 0                present I2C devices
+ *  @retval         < 0                 FAIL
+ *  @since          Novembre 22, 2023
+ *  @author         Andreas Kaeberlein
+ */
+int usbiss_i2c_scan( t_usbiss *self, int8_t start, int8_t stop, int8_t *i2c, uint8_t len );
 
 
 
