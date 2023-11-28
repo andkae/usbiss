@@ -416,7 +416,7 @@ int main (int argc, char *argv[])
 {
     /** Variables **/
     t_usbiss    usbiss;                         // usbiss handle
-    uint8_t     uint8MsgLevel = MSG_LEVEL_NORM; // CLI: message level
+    int         intMsgLevel = MSG_LEVEL_NORM;   // CLI: message level
     uint8_t     uint8TestUsbIss = 0;            // CLI: establish only a connection to USB-Iss and then close without any oter interaction on I2C
     int8_t      int8I2cScanAdr[2] = {-1, -1};   // CLI: i2c scan start/stop address
     uint32_t    uint32BaudRate;                 // CLI: baud rate
@@ -441,8 +441,8 @@ int main (int argc, char *argv[])
     int arg_index = 0;                  // argument index
     const struct option longopt[] = {   // CLI options
         /* flags */
-        { "brief",      no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_BRIEF },
-        { "verbose",    no_argument,    (int*) &uint8MsgLevel, MSG_LEVEL_VERB },
+        { "brief",      no_argument,        &intMsgLevel, MSG_LEVEL_BRIEF },
+        { "verbose",    no_argument,        &intMsgLevel, MSG_LEVEL_VERB },
         /* We distinguish them by their indices */
         {"port",        required_argument,  0,  'p'},   // requires in shortop ':'
         {"baud",        required_argument,  0,  'b'},
@@ -463,14 +463,14 @@ int main (int argc, char *argv[])
     /* check for root rights */
     #if defined(__linux__) || defined(__APPLE__)
         if (getuid()) {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) { printf("[ FAIL ]   Root rights required! Try 'sudo %s'\n", argv[0]); }
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) { printf("[ FAIL ]   Root rights required! Try 'sudo %s'\n", argv[0]); }
             goto ERO_END_L0;
         }
     #endif
 
     /* no param, no operation */
     if (argc < 2) {
-        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
             printf("[ FAIL ]   command line options are missing\n");
             printf("             Try '%s --help' for more information.\n", argv[0]);
         }
@@ -496,7 +496,7 @@ int main (int argc, char *argv[])
             case 'p':
                 /* check for enough memory */
                 if ( (strlen(optarg) + 1) > sizeof(charPort) ) {
-                    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                    if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                         printf("[ FAIL ]   not enough static memory\n");
                     }
                     goto ERO_END_L0;
@@ -514,7 +514,7 @@ int main (int argc, char *argv[])
             case 'm':
                 /* check for enough memory */
                 if ( (strlen(optarg) + 1) > sizeof(charMode) ) {
-                    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                    if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                         printf("[ FAIL ]   not enough static memory\n");
                     }
                     goto ERO_END_L0;
@@ -538,7 +538,7 @@ int main (int argc, char *argv[])
                     /* copy to avoid mess-up of optarg */
                     charPtrBuf = malloc(strlen(optarg)+1);
                     if ( NULL == charPtrBuf ) {
-                        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                             printf("[ FAIL ]   memory allocation\n");
                         }
                         goto ERO_END_L0;
@@ -558,7 +558,7 @@ int main (int argc, char *argv[])
                     free(charPtrBuf);
                     /* check for success */
                     if ( (-1 == int8I2cScanAdr[0]) || (-1 == int8I2cScanAdr[1]) ) {
-                        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                             printf("[ FAIL ]   Set I2C scan address range\n");
                             printf("             use option '--scan=start:stop'\n");
                         }
@@ -566,7 +566,7 @@ int main (int argc, char *argv[])
                     }
                     /* check for ascending */
                     if ( int8I2cScanAdr[0] > int8I2cScanAdr[1] ) {
-                        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                             printf("[ FAIL ]   I2C scan range nedds to be ascending, stop >= start\n");
                         }
                         goto ERO_END_L0;
@@ -577,14 +577,14 @@ int main (int argc, char *argv[])
             /* Print command line options */
             case 'h':
                 usbiss_term_help(argv[0]);
-                uint8MsgLevel = MSG_LEVEL_BRIEF;    // avoid normal end message
+                intMsgLevel = MSG_LEVEL_BRIEF;  // avoid normal end message
                 goto GD_END_L0;
                 break;
 
             /* Print version to console */
             case 'v':
                 printf("%s\n", USBISS_TERM_GITDESCR);
-                uint8MsgLevel = MSG_LEVEL_BRIEF;    // avoid normal end message
+                intMsgLevel = MSG_LEVEL_BRIEF;  // avoid normal end message
                 goto GD_END_L0;
                 break;
 
@@ -593,7 +593,7 @@ int main (int argc, char *argv[])
                 if ( 0 != usbiss_list_uart(charPort, sizeof(charPort), " ") ) {
                     printf("%s\n", charPort);
                 }
-                uint8MsgLevel = MSG_LEVEL_BRIEF;    // avoid normal end message
+                intMsgLevel = MSG_LEVEL_BRIEF;  // avoid normal end message
                 goto GD_END_L0;
                 break;
 
@@ -604,7 +604,7 @@ int main (int argc, char *argv[])
 
             /* Something went wrong */
             default:
-                if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+                if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                     printf("[ FAIL ]   unrecognized option '-%c' use '--help' for proper args.\n", opt);
                 }
                 goto ERO_END_L0;
@@ -612,7 +612,7 @@ int main (int argc, char *argv[])
     }
 
     /* Entry Message */
-    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+    if ( MSG_LEVEL_NORM <= intMsgLevel ) {
         printf("[ INFO ]   USBISS started\n");
     }
 
@@ -623,7 +623,7 @@ int main (int argc, char *argv[])
     }
 
     /* propagate message level */
-    if ( MSG_LEVEL_VERB == uint8MsgLevel ) {
+    if ( MSG_LEVEL_VERB == intMsgLevel ) {
         usbiss_set_verbose(&usbiss, 1); // enable advanced output
     }
 
@@ -641,14 +641,14 @@ int main (int argc, char *argv[])
 
     /* open UART Port */
     if ( 0 != usbiss_open(&usbiss, charPort, uint32BaudRate) ) {
-        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
             printf("[ FAIL ]   unable to open USBISS\n");
             printf("             Port: %s\n", usbiss.charPort);
             printf("             Baud: %i\n", usbiss.uint32BaudRate);
         }
         goto ERO_END_L0;
     }
-    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+    if ( MSG_LEVEL_NORM <= intMsgLevel ) {
         printf("[ OKAY ]   USBISS connected\n");
         printf("             Port     : %s\n", usbiss.charPort);
         printf("             Baudrate : %i\n", usbiss.uint32BaudRate);
@@ -668,7 +668,7 @@ int main (int argc, char *argv[])
             goto ERO_END_L1;
         }
     }
-    if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+    if ( MSG_LEVEL_NORM <= intMsgLevel ) {
         printf("             Mode     : %s\n", usbiss_mode_to_human(usbiss.uint8Mode));
     }
 
@@ -682,7 +682,7 @@ int main (int argc, char *argv[])
         /* scan i2c address */
         intRet = usbiss_i2c_scan(&usbiss, int8I2cScanAdr[0], int8I2cScanAdr[1], (int8_t*) &int8I2cDevices, sizeof(int8I2cDevices)/sizeof(int8I2cDevices[0]));
         if ( 0 > intRet ) {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ FAIL ]   Scan I2C bus in range 0x%0x:0x%0x\n", int8I2cScanAdr[0], int8I2cScanAdr[1]);
                 goto ERO_END_L1;
             }
@@ -695,7 +695,7 @@ int main (int argc, char *argv[])
         }
         /* normal/debug print */
         charHelp[0] = '\0';
-        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
             strncpy(charHelp, "             ", sizeof(charHelp));
             printf("[ OKAY ]   Scan I2C bus in range 0x%0x:0x%0x\n", int8I2cScanAdr[0], int8I2cScanAdr[1]);
         }
@@ -719,12 +719,12 @@ int main (int argc, char *argv[])
     if ( (0 != uint32WrLen) && (0 == uint32RdLen) ) {
         /* write access only */
         if ( 0 == usbiss_i2c_wr(&usbiss, uint8I2cAdr, (void*) uint8PtrWrRd, (size_t) uint32WrLen) ) {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ OKAY ]   Write %i bytes to device 0x%02x\n", uint32WrLen, uint8I2cAdr);
                 print_hexdump("             ", uint8PtrWrRd, uint32WrLen);
             }
         } else {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ FAIL ]   Write %i bytes to device 0x%02x\n", uint32WrLen, uint8I2cAdr);
             }
             goto ERO_END_L1;
@@ -732,7 +732,7 @@ int main (int argc, char *argv[])
     } else if ( (0 == uint32WrLen) && (0 != uint32RdLen) ) {
         /* read access only */
         if ( 0 == usbiss_i2c_rd(&usbiss, uint8I2cAdr, (void*) uint8PtrWrRd, (size_t) uint32RdLen) ) {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ OKAY ]   Read %i bytes from device 0x%02x\n", uint32RdLen, uint8I2cAdr);
                 print_hexdump("             ", uint8PtrWrRd, uint32RdLen);
             } else {
@@ -744,7 +744,7 @@ int main (int argc, char *argv[])
                 }
             }
         } else {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ FAIL ]   Read %i bytes from device 0x%02x\n", uint32RdLen, uint8I2cAdr);
             }
             goto ERO_END_L1;
@@ -758,7 +758,7 @@ int main (int argc, char *argv[])
         }
             // perform access
         if ( 0 == usbiss_i2c_wr_rd(&usbiss, uint8I2cAdr, (void*) uint8PtrWrRd, (size_t) uint32WrLen, (size_t) uint32RdLen) ) {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ OKAY ]   Write/Read interaction with device 0x%02x\n", uint8I2cAdr);
                 printf("           Write %i Bytes\n", uint32WrLen);
                 if ( NULL != uint8PtrHelp ) {
@@ -776,7 +776,7 @@ int main (int argc, char *argv[])
                 }
             }
         } else {
-            if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+            if ( MSG_LEVEL_NORM <= intMsgLevel ) {
                 printf("[ FAIL ]   Write %i and Read %i bytes from device 0x%02x\n", uint32WrLen, uint32RdLen, uint8I2cAdr);
             }
             goto ERO_END_L1;
@@ -798,7 +798,7 @@ int main (int argc, char *argv[])
     /* gracefull end */
     goto GD_END_L0; // avoid compile warning
     GD_END_L0:
-        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
             printf("[ OKAY ]   ended normally\n");
         }
         exit(EXIT_SUCCESS);
@@ -810,7 +810,7 @@ int main (int argc, char *argv[])
     /* Error L0 End */
     goto ERO_END_L0;
     ERO_END_L0:
-        if ( MSG_LEVEL_NORM <= uint8MsgLevel ) {
+        if ( MSG_LEVEL_NORM <= intMsgLevel ) {
             printf("[ FAIL ]   ended abnormally :-(\n");
         }
         exit(EXIT_FAILURE);
