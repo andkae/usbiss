@@ -880,6 +880,7 @@ int usbiss_open( t_usbiss *self, char* port, uint32_t baud )
                 if ( 0 != self->uint8MsgLevel ) {
                     printf("  ERROR:%s: no USB-ISS suitable port found.\n", __FUNCTION__);
                 }
+                strncpy(self->charPort, "ERROR: no USB-ISS uart found", sizeof(self->charPort));    // caller can distinguish the reason
                 return -1;
                 break;
             /* one UART */
