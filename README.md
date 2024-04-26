@@ -1,4 +1,7 @@
-[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml) [![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml) [![doxygen](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml)
+[![Linux](https://github.com/andkae/usbiss/actions/workflows/linux.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/linux.yml)
+[![Windows](https://github.com/andkae/usbiss/actions/workflows/windows.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/windows.yml)
+[![Doxygen](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml/badge.svg)](https://github.com/andkae/usbiss/actions/workflows/doxygen.yml)
+[![Downloads](https://img.shields.io/github/downloads/andkae/usbiss/total.svg?style=flat)]()
 
 - [usbiss](#usbiss)
   * [Features](#features)
